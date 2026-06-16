@@ -1,0 +1,3 @@
+interface:
+  display_name: "Team Brainstorm"
+  short_description: "Turn an idea into `.codex/specs` requirements"

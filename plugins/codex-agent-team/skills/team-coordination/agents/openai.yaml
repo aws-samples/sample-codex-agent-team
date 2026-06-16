@@ -1,0 +1,3 @@
+interface:
+  display_name: "Team Coordination"
+  short_description: "Coordinate explicit Codex subagent workflows"

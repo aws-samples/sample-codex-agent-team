@@ -1,0 +1,3 @@
+[agents]
+max_threads = 14
+max_depth = 2

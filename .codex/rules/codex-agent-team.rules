@@ -1,0 +1,103 @@
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing changes should remain an explicit approval step in team workflows.",
+    match = [
+        "git push",
+        "git push origin main",
+    ],
+    not_match = [
+        "git status",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "push", ["--force", "--force-with-lease"]],
+    decision = "forbidden",
+    justification = "Do not rewrite remote history from Codex; perform force pushes manually after reviewing the branch state.",
+    match = [
+        "git push --force",
+        "git push --force-with-lease origin main",
+    ],
+    not_match = [
+        "git push",
+        "git push origin main",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Do not discard local changes from Codex; inspect status and ask the user for an explicit cleanup plan.",
+    match = [
+        "git reset --hard",
+        "git reset --hard HEAD",
+    ],
+    not_match = [
+        "git reset",
+        "git status",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "prompt",
+    justification = "Cleaning untracked files can remove local work and should be approved explicitly.",
+    match = [
+        "git clean -fd",
+        "git clean -fdx",
+    ],
+    not_match = [
+        "git status",
+    ],
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", "create"],
+    decision = "prompt",
+    justification = "Creating pull requests should remain an explicit approval step.",
+    match = [
+        "gh pr create",
+        "gh pr create --fill",
+    ],
+)
+
+prefix_rule(
+    pattern = ["cdk", "deploy"],
+    decision = "prompt",
+    justification = "Deploy actions should be reviewed before leaving the sandbox.",
+    match = [
+        "cdk deploy",
+        "cdk deploy MyStack",
+    ],
+)
+
+prefix_rule(
+    pattern = ["cdk", "destroy"],
+    decision = "prompt",
+    justification = "Infrastructure destroy actions require explicit approval and an impact statement.",
+    match = [
+        "cdk destroy",
+        "cdk destroy MyStack",
+    ],
+)
+
+prefix_rule(
+    pattern = ["terraform", "apply"],
+    decision = "prompt",
+    justification = "Infrastructure apply commands should be reviewed before leaving the sandbox.",
+    match = [
+        "terraform apply",
+        "terraform apply -auto-approve",
+    ],
+)
+
+prefix_rule(
+    pattern = ["terraform", "destroy"],
+    decision = "prompt",
+    justification = "Infrastructure destroy actions require explicit approval and an impact statement.",
+    match = [
+        "terraform destroy",
+        "terraform destroy -auto-approve",
+    ],
+)

@@ -1,0 +1,35 @@
+{
+  "name": "codex-agent-team",
+  "version": "0.1.0",
+  "description": "Hybrid Codex team workflow with lead/member agents, spec-driven skills, review-cycle guidance, and local prompt shortcuts.",
+  "author": {
+    "name": "Rubab Khan"
+  },
+  "license": "MIT-0",
+  "keywords": [
+    "codex",
+    "agents",
+    "subagents",
+    "software-development",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Agent Team",
+    "shortDescription": "Spec-driven hybrid Codex team workflow",
+    "longDescription": "A Codex workflow bundle that provides shared team skills, prompt shortcuts, and implementation patterns for planning, parallel implementation, documentation, and review loops. Pair it with the repo's .codex/agents custom agents for the full lead/member team.",
+    "developerName": "Rubab Khan",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Plan this work with the Codex hybrid team",
+      "Break this feature into parallel coding, devops, review, and architecture scopes",
+      "Turn this idea into a `.codex/specs` plan"
+    ],
+    "brandColor": "#145A32"
+  }
+}

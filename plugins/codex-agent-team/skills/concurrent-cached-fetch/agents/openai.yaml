@@ -1,0 +1,4 @@
+interface:
+  display_name: "Concurrent Cached Fetch"
+  short_description: "Concurrent disk-cached external fetching"
+  default_prompt: "Use $concurrent-cached-fetch when implementing bulk external API lookups."
