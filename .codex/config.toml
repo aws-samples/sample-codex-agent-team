@@ -1,3 +1,41 @@
 [agents]
 max_threads = 14
 max_depth = 2
+
+[mcp_servers."aws-knowledge-mcp-server"]
+url = "https://knowledge-mcp.global.api.aws"
+enabled = true
+
+[mcp_servers.awslabs_aws_documentation_mcp_server]
+command = "uvx"
+args = ["awslabs.aws-documentation-mcp-server@latest"]
+startup_timeout_sec = 120
+tool_timeout_sec = 120
+enabled = true
+
+[mcp_servers.awslabs_aws_documentation_mcp_server.env]
+FASTMCP_LOG_LEVEL = "ERROR"
+AWS_DOCUMENTATION_PARTITION = "aws"
+
+[mcp_servers.awslabs_aws_iac_mcp_server]
+command = "uvx"
+args = ["awslabs.aws-iac-mcp-server@latest"]
+startup_timeout_sec = 120
+tool_timeout_sec = 120
+enabled = true
+
+[mcp_servers.awslabs_aws_iac_mcp_server.env]
+AWS_PROFILE = "default"
+FASTMCP_LOG_LEVEL = "ERROR"
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+startup_timeout_sec = 200
+tool_timeout_sec = 200
+default_tools_approval_mode = "approve"
+enabled = true
+
+[mcp_servers.deepwiki]
+url = "https://mcp.deepwiki.com/mcp"
+enabled = true

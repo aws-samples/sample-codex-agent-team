@@ -20,5 +20,6 @@
 - Prefer read-only or least-privilege credentials for AWS or production-like investigation.
 - Treat unknown environments as production until proven otherwise.
 - Prefer `list`, `describe`, `get`, dry-run, plan, or diff operations before any mutating operation.
+- Use `aws-security-guidelines` for AWS resource, IaC, deployment, and security review work; prefer configured AWS knowledge, documentation, and IaC MCP servers for current AWS facts.
 - Do not delete, terminate, modify production resources, or disable safety protections without explicit user direction and a clear impact statement.
 - Never inline secrets in code, docs, configs, tests, or command examples.

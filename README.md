@@ -20,7 +20,7 @@ The sample is built around a main-thread coordinator and five optional role agen
 | `review-agent` | Independent reviewer | xhigh | PASS/FAIL review for bugs, regressions, security, and missing verification |
 | `sa-agent` | Architecture and systems advisor | high | AWS-leaning architecture, reliability, cost, and operational design |
 
-The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents.
+The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents. The sample also includes AWS security review guidance and project-scoped MCP server entries for AWS knowledge, AWS docs, AWS IaC help, Context7, and DeepWiki.
 
 ## Mental Model
 
@@ -74,6 +74,7 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
 | Updating CI/CD, IaC, deployment config, or runbooks | `devops-agent` | Prefer plan, synth, diff, lint, dry-run, or non-mutating validation. |
 | Reviewing a change | `review-agent` | Must lead with findings and return PASS or FAIL. |
 | Evaluating architecture, reliability, cost, or operations | `sa-agent` | Useful before large build waves or production-impacting design choices. |
+| Reviewing AWS resource security | `aws-security-guidelines` | Use for AWS IaC, deployment handoffs, data security controls, and production readiness. |
 | Implementing many independent external calls | `concurrent-cached-fetch` | Adds bounded concurrency and content-keyed disk caching guidance. |
 
 ## Prerequisites
@@ -182,7 +183,7 @@ Scope the audit to one area:
 |-- docs/agent-pool-smoke-test.md        # Max-pool smoke-test result and lessons
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
-|-- SECURITY.md                          # Threat model and user responsibilities
+`-- SECURITY.md                          # Threat model and user responsibilities
 ```
 
 ## Key Concepts
@@ -203,7 +204,7 @@ The prompts intentionally constrain agents to their assigned scope:
 
 The repo-local plugin lives at `plugins/codex-agent-team`. Its manifest points Codex at the `skills/` directory and exposes prompt shortcuts under `commands/`.
 
-Install it from the repo marketplace when you want the reusable workflow in a Codex session. Keep the plugin small and reviewable: this sample does not bundle MCP servers, app integrations, dependency installers, or network scripts.
+Install it from the repo marketplace when you want the reusable workflow in a Codex session. Keep the plugin small and reviewable: the plugin itself does not bundle executable MCP servers, app integrations, dependency installers, or network scripts. Project-scoped MCP server configuration lives separately in `.codex/config.toml`.
 
 ### Skills
 
@@ -216,7 +217,22 @@ Skills are reusable instructions that the main thread or agents load on demand.
 | `team-coordination` | Write explicit subagent prompts with file boundaries and verification expectations. |
 | `team-review-cycle` | Use scoped review files and PASS/FAIL verdicts. |
 | `team-documentation` | Keep README, runbook, architecture, API, and spec docs aligned. |
+| `aws-security-guidelines` | Review AWS services for encryption, TLS, logging, tagging, IAM, and production data controls. |
 | `concurrent-cached-fetch` | Add bounded concurrency and disk caching for independent external fan-out calls. |
+
+The AWS security guidance strengthens AWS-facing planning and review by making data controls explicit: KMS encryption, TLS enforcement, S3 Block Public Access, access logging, data-classification tags, least-privilege IAM, production-readiness checks, and `.codex/specs/<slug>/` security evidence for durable review notes.
+
+### MCP Servers
+
+Project-scoped MCP servers are configured in `.codex/config.toml`. They are available after the project is trusted and Codex reloads its MCP configuration. Review these entries before use because some servers start local `uvx` or `npx` processes and may download packages or access remote documentation services.
+
+| Server | Transport | Purpose |
+| --- | --- | --- |
+| `aws-knowledge-mcp-server` | Streamable HTTP | AWS knowledge endpoint for AWS service and architecture context. |
+| `awslabs_aws_documentation_mcp_server` | `uvx` stdio | AWS documentation lookup from the AWS Labs MCP server. |
+| `awslabs_aws_iac_mcp_server` | `uvx` stdio | AWS infrastructure-as-code assistance, using `AWS_PROFILE=default`. |
+| `context7` | `npx` stdio | Up-to-date library and framework documentation. |
+| `deepwiki` | Streamable HTTP | Repository and documentation research through DeepWiki. |
 
 ### Commands
 
@@ -361,6 +377,7 @@ When adding a new role agent, update:
 2. This README's role tables
 3. `docs/design.md`
 4. Relevant skills or prompt shortcuts
+5. `SECURITY_REVIEW.md` if the new agent changes trust boundaries, execution surface, or data handling
 
 ## Validation
 
@@ -410,7 +427,7 @@ Before adopting this sample for organization use, complete your own approvals:
 | Plugin distribution approval | To be completed by adopter |
 | Hook execution review | To be completed by adopter |
 | Local metadata logging approval | To be completed by adopter |
-| MCP/server integrations | Not included by default |
+| MCP/server integrations | Review project-scoped entries in `.codex/config.toml` before trusting or enabling |
 | Production or cloud-resource access | To be completed by adopter |
 
 See `SECURITY.md` for the threat model.

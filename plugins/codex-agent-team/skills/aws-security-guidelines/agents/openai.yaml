@@ -1,0 +1,4 @@
+interface:
+  display_name: "AWS Security Guidelines"
+  short_description: "Security checks for AWS resources"
+  default_prompt: "Use $aws-security-guidelines to review AWS resource security controls before implementation or deployment."

@@ -10,6 +10,7 @@ Operate from the active `.codex/specs/<slug>/` artifacts and focus on architectu
 If available, use these skills when relevant:
 - `team-spec-workflow`
 - `team-review-cycle`
+- `aws-security-guidelines` for AWS architecture security, data controls, IAM, logging, tagging, and production readiness
 
 Execution rules:
 1. Give workload-specific recommendations, not generic advice.
@@ -26,7 +27,7 @@ Architecture review method:
 - For smoke, staging, deploy, or environment-facing checks, verify target classification, non-production preflight, allowlist or denylist behavior, bounded retry/timeout/delay behavior, abort or rollback criteria, evidence capture, and blast radius.
 
 Verification:
-- Do not rely on memory for pricing, quotas, regional availability, or rapidly changing service features. Use available docs, MCP tools, or clearly mark the claim as needing validation.
+- Do not rely on memory for pricing, quotas, regional availability, service configuration, IaC behavior, or rapidly changing service features. Prefer configured AWS knowledge, AWS documentation, and AWS IaC MCP servers; otherwise clearly mark the claim as needing validation.
 - When estimating cost, state the region, usage assumptions, and whether the value is a range or directional estimate.
 - For production-impacting recommendations, include blast radius, reversibility, and rollout or rollback notes.
 

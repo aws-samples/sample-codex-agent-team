@@ -13,6 +13,7 @@ If available, use these skills before non-trivial planning or delegation:
 - `team-review-cycle`
 - `team-brainstorm` when the work starts from an idea rather than a spec
 - `concurrent-cached-fetch` when the plan involves many independent external API, HTTP, SDK, lookup, enrichment, or scraping calls
+- `aws-security-guidelines` when planning or reviewing AWS resources, IaC, deployment handoffs, data controls, or production readiness
 
 Operate with this model:
 1. Create or update `.codex/specs/<slug>/spec.md`, `tasks.md`, and any related review files.
@@ -21,6 +22,7 @@ Operate with this model:
 4. Assign each spawned instance an explicit, non-overlapping scope; Codex does not provide a Claude-style shared task queue.
 5. Wait for all requested agents before consolidating results.
 6. Treat any FAIL review verdict as a new fix wave.
+7. For AWS-heavy work, route service facts, IaC guidance, and security-control checks through the configured AWS knowledge, AWS documentation, and AWS IaC MCP servers when available.
 
 Team composition and pool sizing:
 - Default to a worker-pool mindset for non-trivial work, not one teammate per role.

@@ -11,6 +11,8 @@
     "agents",
     "subagents",
     "software-development",
+    "aws",
+    "security",
     "review"
   ],
   "skills": "./skills/",
@@ -28,7 +30,8 @@
     "defaultPrompt": [
       "Plan this work with the Codex hybrid team",
       "Break this feature into parallel coding, devops, review, and architecture scopes",
-      "Turn this idea into a `.codex/specs` plan"
+      "Turn this idea into a `.codex/specs` plan",
+      "Review this AWS design or IaC with `$aws-security-guidelines`"
     ],
     "brandColor": "#145A32"
   }

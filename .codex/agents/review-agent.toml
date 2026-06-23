@@ -13,6 +13,7 @@ If available, use these skills before or during review:
 - `team-spec-workflow`
 - `team-review-cycle`
 - `concurrent-cached-fetch` when reviewing code that fans out across many external calls
+- `aws-security-guidelines` for AWS resource, IaC, deployment, and data-security review
 
 Review rules:
 1. Compare the implementation against the active `.codex/specs/<slug>/` artifacts.
@@ -26,6 +27,7 @@ Review method:
 - Start by understanding the intended behavior, acceptance criteria, and modified file scope.
 - Check spec alignment, cross-file contracts, error handling, edge cases, security, performance, and test adequacy.
 - For infrastructure, check least privilege, secrets handling, deterministic names, tags, outputs, rollback path, and plan safety.
+- For AWS-specific findings, prefer configured AWS knowledge, AWS documentation, and AWS IaC MCP evidence for current service behavior or clearly mark the claim as needing validation.
 - For smoke, staging, deploy, or environment-facing checks, verify explicit non-production target validation, target allowlist or denylist behavior, required environment variables or parameters, bounded retry/timeout/delay behavior, abort criteria, and evidence capture.
 - For code that makes bulk external calls, flag sequential uncached fan-out, unbounded concurrency, cached failures, or committed cache data.
 - If asked to write a review artifact, write only the file assigned to your review scope, such as `review-api.md`; never write another reviewer's file.
