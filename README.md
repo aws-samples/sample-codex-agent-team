@@ -119,6 +119,24 @@ For an existing spec, use:
 Use $team-spec-workflow for .codex/specs/<slug>. Build the next file-disjoint wave, then run review.
 ```
 
+### Personal Marketplace Install
+
+If you want this sample to load from your default personal Codex marketplace instead of registering the repo marketplace, use the installer script:
+
+```bash
+python3 scripts/install_personal_plugin.py --refresh-cache
+```
+
+The script updates `~/.agents/plugins/marketplace.json`, creates the canonical `~/plugins/codex-agent-team` symlink to this repo's `plugins/codex-agent-team`, and refreshes the installed plugin cache with `codex plugin add codex-agent-team@personal`.
+
+This path matters: in the default personal marketplace, `./plugins/codex-agent-team` resolves to `~/plugins/codex-agent-team`, not to `~/.codex/plugins/codex-agent-team` and not to `~/.agents/plugins/plugins/codex-agent-team`. If skills or role agents are present on disk but missing in a new Codex thread, verify this symlink and rerun the installer.
+
+If `~/plugins/codex-agent-team` already points to an older or private copy that you intentionally want to replace with this public sample, rerun with:
+
+```bash
+python3 scripts/install_personal_plugin.py --force --refresh-cache
+```
+
 ## Common Usage Prompts
 
 Create requirements from an idea:
@@ -183,6 +201,7 @@ Scope the audit to one area:
 |-- docs/agent-pool-smoke-test.md        # Max-pool smoke-test result and lessons
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
+|-- scripts/install_personal_plugin.py   # Optional personal-marketplace installer
 `-- SECURITY.md                          # Threat model and user responsibilities
 ```
 
@@ -388,6 +407,7 @@ python3 -m py_compile .codex/hooks/session_start.py .codex/hooks/subagent_lifecy
 python3 -m json.tool .codex/hooks.json
 python3 -m json.tool .agents/plugins/marketplace.json
 python3 -m json.tool plugins/codex-agent-team/.codex-plugin/plugin.json
+python3 scripts/install_personal_plugin.py --dry-run
 python3 -c "import pathlib, tomllib; files=[pathlib.Path('.codex/config.toml'), *pathlib.Path('.codex/agents').glob('*.toml')]; [tomllib.loads(p.read_text()) for p in files]"
 ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f) }; puts "yaml ok"' plugins/codex-agent-team/skills/*/agents/openai.yaml
 ```
@@ -411,6 +431,7 @@ If this command fails under a strict sandbox, rerun it in a normal shell or thro
 | Symptom | Likely Cause | Fix |
 | --- | --- | --- |
 | Skills or commands are not visible | Session started before plugin install or enablement | Restart the Codex thread after installing the plugin. |
+| Personal marketplace install shows the plugin but skills/agents are missing | `~/.agents/plugins/marketplace.json` points at `./plugins/codex-agent-team`, but `~/plugins/codex-agent-team` does not resolve to this repo's plugin | Run `python3 scripts/install_personal_plugin.py --refresh-cache`, then start a new Codex thread. |
 | Custom agents are missing | Project is not trusted or Codex was not opened at repo root | Trust the project and restart from the repository root. |
 | Hooks do not run | Hooks are not trusted, project is not a git repo, or hook path resolution failed | Review `/hooks`, ensure the repo has a git root, and inspect `.codex/hooks.json`. |
 | Subagents edit overlapping files | Task scopes were not file-disjoint | Stop the wave, reconcile changes in the main thread, then create narrower tasks. |

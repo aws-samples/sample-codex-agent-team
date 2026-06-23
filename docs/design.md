@@ -20,6 +20,7 @@ User request
 | `.codex/agents` | Project-scoped custom agent definitions for Codex subagent workflows |
 | `plugins/codex-agent-team` | Installable plugin containing reusable team skills and prompt shortcuts |
 | `.agents/plugins/marketplace.json` | Repo marketplace so Codex can discover and install the plugin |
+| `scripts/install_personal_plugin.py` | Optional helper that wires the same plugin into the default personal marketplace using the canonical `~/plugins/codex-agent-team` path |
 | `.codex/hooks` | Fail-open lifecycle logging for sessions and subagents |
 | `.codex/rules` | Guardrails for commands that should remain explicit approvals |
 | `docs/specs/templates` | Starter artifacts for spec-driven work |
@@ -62,6 +63,7 @@ The smoke run also showed intermittent subagent submission failures before execu
 | Keep agents in `.codex/agents` | Codex custom agents are project/user configuration files rather than ordinary plugin contents. |
 | Package workflow instructions as a plugin | Plugins are the shareable distribution unit for skills and prompt shortcuts. |
 | Use a repo marketplace | A checked-in `.agents/plugins/marketplace.json` lets adopters install the plugin from the repo. |
+| Keep personal-marketplace paths canonical | When installed through the default personal marketplace, Codex resolves `./plugins/codex-agent-team` to `~/plugins/codex-agent-team`; the installer creates that symlink instead of relying on `~/.codex/plugins` or `~/.agents/plugins/plugins`. |
 | Exclude runtime specs and logs | Specs, session logs, SQLite state, caches, and shell snapshots are per-user runtime artifacts. |
 | Keep hooks project-local | Adopters can inspect, trust, or disable them with Codex's normal hook review flow. |
 
