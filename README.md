@@ -36,7 +36,7 @@ This sample does not provide a shared task database. Coordination happens throug
 
 ## Parallel Worker Pools
 
-The installed team can run multiple instances of the same role when the work is genuinely file-disjoint. The public sample config sets `.codex/config.toml` to `max_threads = 14`, which leaves room for the largest intended first-level worker pool. The main Codex thread is the preferred lead; `fullstack-agent` can also produce a spawn plan when the user explicitly asks for a lead profile.
+The installed team can run multiple instances of the same role when the work is genuinely file-disjoint. The public sample config sets `.codex/config.toml` to `max_threads = 14` and `max_depth = 2`, which leaves room for the largest intended first-level worker pool and explicit recursive delegation. The main Codex thread is the preferred lead; `fullstack-agent` can also produce a spawn plan when the user explicitly asks for a lead profile.
 
 | Role | Maximum Parallel Instances | Naming Pattern | Use |
 | --- | ---: | --- | --- |
@@ -140,7 +140,7 @@ python3 scripts/install_personal_plugin.py --refresh-cache
 
 The script updates `~/.agents/plugins/marketplace.json`, creates the canonical `~/plugins/codex-agent-team` symlink to this repo's `plugins/codex-agent-team`, and refreshes the installed plugin cache with `codex plugin add codex-agent-team@personal`.
 
-This path matters: in the default personal marketplace, `./plugins/codex-agent-team` resolves to `~/plugins/codex-agent-team`, not to `~/.codex/plugins/codex-agent-team` and not to `~/.agents/plugins/plugins/codex-agent-team`. If skills or role agents are present on disk but missing in a new Codex thread, verify this symlink and rerun the installer.
+This path matters: in the default personal marketplace, `./plugins/codex-agent-team` resolves to `~/plugins/codex-agent-team`, not to `~/.codex/plugins/codex-agent-team` and not to `~/.agents/plugins/plugins/codex-agent-team`. Do not also symlink the plugin skills into `~/.agents/skills`; duplicate discovery can surface duplicate skill selectors. If skills or role agents are present on disk but missing in a new Codex thread, verify the canonical symlink and rerun the installer.
 
 If `~/plugins/codex-agent-team` already points to an older or private copy that you intentionally want to replace with this public sample, rerun with:
 
@@ -341,6 +341,7 @@ Rules in `.codex/rules/codex-agent-team.rules` keep selected high-risk commands 
 - `git reset --hard`
 - `git clean`
 - `gh pr create`
+- `python3 -m pip install`
 - `cdk deploy` and `cdk destroy`
 - `terraform apply` and `terraform destroy`
 - `sam deploy` and `sam delete`
@@ -349,7 +350,7 @@ Rules in `.codex/rules/codex-agent-team.rules` keep selected high-risk commands 
 - `kubectl delete`
 - `docker system prune`
 
-Rules reduce accidental risky operations. They do not replace sandboxing, code review, least-privilege credentials, or careful approval decisions.
+Rules reduce accidental risky operations and keep dependency installs explicit. They do not replace sandboxing, code review, least-privilege credentials, project-local dependency isolation, or careful approval decisions.
 
 ## Writing Good Subagent Prompts
 
@@ -458,6 +459,7 @@ If this command fails under a strict sandbox, rerun it in a normal shell or thro
 | --- | --- | --- |
 | Skills or commands are not visible | Session started before plugin install or enablement | Restart the Codex thread after installing the plugin. |
 | Personal marketplace install shows the plugin but skills/agents are missing | `~/.agents/plugins/marketplace.json` points at `./plugins/codex-agent-team`, but `~/plugins/codex-agent-team` does not resolve to this repo's plugin | Run `python3 scripts/install_personal_plugin.py --refresh-cache`, then start a new Codex thread. |
+| Duplicate team skills appear in selectors | Plugin skills were also exposed through direct `~/.agents/skills` symlinks or a direct `~/.agents/plugins/plugins/codex-agent-team` symlink | Remove the direct symlinks, keep `~/plugins/codex-agent-team` as the personal-marketplace source, refresh the plugin cache, and start a new Codex thread. |
 | Custom agents are missing | Project is not trusted or Codex was not opened at repo root | Trust the project and restart from the repository root. |
 | Hooks do not run | Hooks are not trusted, project is not a git repo, or hook path resolution failed | Review `/hooks`, ensure the repo has a git root, and inspect `.codex/hooks.json`. |
 | Subagents edit overlapping files | Task scopes were not file-disjoint | Stop the wave, reconcile changes in the main thread, then create narrower tasks. |

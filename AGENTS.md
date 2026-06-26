@@ -4,7 +4,7 @@
 
 - Use repo-local `.codex/specs/<slug>/` for non-trivial specs, task plans, review files, SA reviews, decision logs, and security exceptions when a team workflow is in play.
 - Treat the main thread as the top-level team lead by default. Use `fullstack-agent` only when the user explicitly asks for a lead profile or spawn-plan generation.
-- The lead coordinates and delegates. It may research, write specs, write tasks, update decisions, and consolidate outcomes, but it should not implement non-trivial production code, tests, IaC, or deployment changes itself.
+- When a team workflow is in play, the lead coordinates and delegates. It may research, write specs, write tasks, update decisions, and consolidate outcomes, but it should not implement non-trivial production code, tests, IaC, or deployment changes itself.
 - Prefer wide, file-disjoint task waves. No two parallel tasks may write the same file. If overlap is unavoidable, serialize that slice or document an explicit merge step.
 - Treat review as a separate adversarial gate. A wave is not done until the assigned `review-agent` pass reports PASS. A self-review is a TODO marker, not a verdict.
 
