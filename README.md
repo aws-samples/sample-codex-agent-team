@@ -215,8 +215,7 @@ Scope the audit to one area:
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
 |-- scripts/install_personal_plugin.py   # Optional personal-marketplace installer
-|-- SECURITY.md                          # Threat model and user responsibilities
-`-- SECURITY_REVIEW.md                   # Review findings, controls, and validation notes
+`-- SECURITY.md                          # Threat model and user responsibilities
 ```
 
 ## Key Concepts
@@ -481,7 +480,7 @@ Before adopting this sample for organization use, complete your own approvals:
 | MCP/server integrations | Review project-scoped entries in `.codex/config.toml` before trusting or enabling |
 | Production or cloud-resource access | To be completed by adopter |
 
-See `SECURITY.md` for the threat model and `SECURITY_REVIEW.md` for the current review notes, residual risks, and validation history.
+See `SECURITY.md` for the threat model.
 
 ## License
 
