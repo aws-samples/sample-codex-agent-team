@@ -19,7 +19,6 @@ The sample is built around a main-thread coordinator, five optional role agents,
 | `devops-agent` | Infrastructure and delivery specialist | high | CI/CD, containers, IaC, environment wiring, and runbooks |
 | `review-agent` | Independent reviewer | xhigh | PASS/FAIL review for bugs, regressions, security, and missing verification |
 | `sa-agent` | AWS Solutions Architect teammate | xhigh | Architecture, reliability, cost, security, and operational design |
-| `test-suite-runner` | Test execution specialist | medium | Test discovery, execution, and concise pass/fail reports without fixing code |
 
 The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents. The sample also includes AWS security review guidance, concurrent external-fetch guidance, git workflow guidance, AWS Core/AWS Data Analytics/Superpowers plugin routing, and project-scoped MCP entries for AWS IaC help, Context7, and DeepWiki.
 
@@ -215,7 +214,8 @@ Scope the audit to one area:
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
 |-- scripts/install_personal_plugin.py   # Optional personal-marketplace installer
-`-- SECURITY.md                          # Threat model and user responsibilities
+|-- SECURITY.md                          # Threat model and user responsibilities
+`-- SECURITY_REVIEW.md                   # Review findings, controls, and validation notes
 ```
 
 ## Key Concepts
@@ -480,7 +480,7 @@ Before adopting this sample for organization use, complete your own approvals:
 | MCP/server integrations | Review project-scoped entries in `.codex/config.toml` before trusting or enabling |
 | Production or cloud-resource access | To be completed by adopter |
 
-See `SECURITY.md` for the threat model.
+See `SECURITY.md` for the threat model and `SECURITY_REVIEW.md` for the current review notes, residual risks, and validation history.
 
 ## License
 
