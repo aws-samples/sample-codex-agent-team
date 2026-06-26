@@ -44,7 +44,6 @@ The installed team can run multiple instances of the same role when the work is 
 | `devops-agent` | 2 | `devops-1`, `devops-2` | Independent CI/CD, infra, environment, container, or runbook scopes |
 | `review-agent` | 4 | `review-1` through `review-4`, or scope names like `review-api` | Parallel review of separate modules, layers, or changed file sets |
 | `sa-agent` | 1 | `sa-1` or a scope name | Architecture, reliability, cost, operations, and AWS design advice |
-| `test-suite-runner` | As requested | `test-runner` or a scope name | Test suite discovery and execution when the coordinator needs a report-only verification pass |
 
 These are ceilings, not quotas. Use fewer agents when there are fewer independent scopes, and serialize any work that must touch the same files. Codex does not provide Claude-style shared task tools in this workflow, so the coordinator assigns each spawned instance an explicit name, file scope, expected output, and verification command.
 
@@ -424,7 +423,6 @@ When adding a new role agent, update:
 2. This README's role tables
 3. `docs/design.md`
 4. Relevant skills or prompt shortcuts
-5. `SECURITY_REVIEW.md` if the new agent changes trust boundaries, execution surface, or data handling
 
 ## Validation
 
