@@ -10,17 +10,18 @@ Jump to [Quick Start](#quick-start).
 
 ![Architecture Diagram](docs/architecture-diagram.png)
 
-The sample is built around a main-thread coordinator and five optional role agents:
+The sample is built around a main-thread coordinator, five optional role agents, and one test execution utility agent:
 
 | Agent | Role | Reasoning Effort | Primary Use |
 | --- | --- | --- | --- |
-| `fullstack-agent` | Spawned lead | xhigh | Specs, work splitting, delegation, and review-loop consolidation |
-| `coding-agent` | Implementation engineer | high | Scoped production code, tests, refactors, and fixes |
+| `fullstack-agent` | Lead coordinator | xhigh | Specs, work splitting, delegation, spawn-plan generation, and review-loop consolidation |
+| `coding-agent` | Implementation engineer | xhigh | Scoped production code, tests, refactors, and fixes |
 | `devops-agent` | Infrastructure and delivery specialist | high | CI/CD, containers, IaC, environment wiring, and runbooks |
 | `review-agent` | Independent reviewer | xhigh | PASS/FAIL review for bugs, regressions, security, and missing verification |
-| `sa-agent` | Architecture and systems advisor | high | AWS-leaning architecture, reliability, cost, and operational design |
+| `sa-agent` | AWS Solutions Architect teammate | xhigh | Architecture, reliability, cost, security, and operational design |
+| `test-suite-runner` | Test execution specialist | medium | Test discovery, execution, and concise pass/fail reports without fixing code |
 
-The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents. The sample also includes AWS security review guidance and project-scoped MCP server entries for AWS knowledge, AWS docs, AWS IaC help, Context7, and DeepWiki.
+The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents. The sample also includes AWS security review guidance, concurrent external-fetch guidance, git workflow guidance, AWS Core/AWS Data Analytics/Superpowers plugin routing, and project-scoped MCP entries for AWS IaC help, Context7, and DeepWiki.
 
 ## Mental Model
 
@@ -36,7 +37,7 @@ This sample does not provide a shared task database. Coordination happens throug
 
 ## Parallel Worker Pools
 
-The installed team can run multiple instances of the same role when the work is genuinely file-disjoint. The public sample config sets `.codex/config.toml` to `max_threads = 14`, which leaves room for a spawned lead plus the largest intended first-level pool.
+The installed team can run multiple instances of the same role when the work is genuinely file-disjoint. The public sample config sets `.codex/config.toml` to `max_threads = 14`, which leaves room for the largest intended first-level worker pool. The main Codex thread is the preferred lead; `fullstack-agent` can also produce a spawn plan when the user explicitly asks for a lead profile.
 
 | Role | Maximum Parallel Instances | Naming Pattern | Use |
 | --- | ---: | --- | --- |
@@ -44,6 +45,7 @@ The installed team can run multiple instances of the same role when the work is 
 | `devops-agent` | 2 | `devops-1`, `devops-2` | Independent CI/CD, infra, environment, container, or runbook scopes |
 | `review-agent` | 4 | `review-1` through `review-4`, or scope names like `review-api` | Parallel review of separate modules, layers, or changed file sets |
 | `sa-agent` | 1 | `sa-1` or a scope name | Architecture, reliability, cost, operations, and AWS design advice |
+| `test-suite-runner` | As requested | `test-runner` or a scope name | Test suite discovery and execution when the coordinator needs a report-only verification pass |
 
 These are ceilings, not quotas. Use fewer agents when there are fewer independent scopes, and serialize any work that must touch the same files. Codex does not provide Claude-style shared task tools in this workflow, so the coordinator assigns each spawned instance an explicit name, file scope, expected output, and verification command.
 
@@ -74,8 +76,10 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
 | Updating CI/CD, IaC, deployment config, or runbooks | `devops-agent` | Prefer plan, synth, diff, lint, dry-run, or non-mutating validation. |
 | Reviewing a change | `review-agent` | Must lead with findings and return PASS or FAIL. |
 | Evaluating architecture, reliability, cost, or operations | `sa-agent` | Useful before large build waves or production-impacting design choices. |
+| Running tests without fixing code | `test-suite-runner` | Use when you need command discovery and a concise PASS/FAIL report. |
 | Reviewing AWS resource security | `aws-security-guidelines` | Use for AWS IaC, deployment handoffs, data security controls, and production readiness. |
 | Implementing many independent external calls | `concurrent-cached-fetch` | Adds bounded concurrency and content-keyed disk caching guidance. |
+| Preparing branches, commits, or PR handoffs | `git-workflow` | Keeps git usage non-interactive and aligned with Conventional Commits. |
 
 ## Prerequisites
 
@@ -83,6 +87,7 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
 - Python 3.8+ on `PATH`; hooks use only the Python standard library.
 - A git repository root. Hook commands resolve repo-local paths with `git rev-parse --show-toplevel`.
 - A trusted Codex project. Project `.codex` config, agents, hooks, and rules load only after you trust the project.
+- For the AWS-optimized path, install and enable `aws-core@agent-toolkit-for-aws`, `aws-data-analytics@agent-toolkit-for-aws`, and `superpowers@openai-curated`. The sample `.codex/config.toml` reflects those enabled plugins.
 - Optional: organization approval for Codex, OpenAI usage, plugin distribution, hooks, and any future MCP/server integrations.
 
 ## Quick Start
@@ -99,9 +104,17 @@ codex plugin marketplace add /absolute/path/to/sample_codex_agent_team
 
 4. Open `/plugins`, switch to the `Sample Codex Agent Team` marketplace, and install `Codex Agent Team`.
 
-5. Start a new Codex thread so plugin skills, commands, and custom agents are discoverable.
+5. Install or enable the companion plugins if your environment has access to their marketplaces:
 
-6. Start with an explicit workflow prompt:
+```text
+aws-core@agent-toolkit-for-aws
+aws-data-analytics@agent-toolkit-for-aws
+superpowers@openai-curated
+```
+
+6. Start a new Codex thread so plugin skills, commands, and custom agents are discoverable.
+
+7. Start with an explicit workflow prompt:
 
 ```text
 Use the Codex hybrid team to plan this feature. Create a .codex/specs plan, split implementation into file-disjoint scopes, spawn role agents where useful, and run an independent review wave.
@@ -202,7 +215,8 @@ Scope the audit to one area:
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
 |-- scripts/install_personal_plugin.py   # Optional personal-marketplace installer
-`-- SECURITY.md                          # Threat model and user responsibilities
+|-- SECURITY.md                          # Threat model and user responsibilities
+`-- SECURITY_REVIEW.md                   # Review findings, controls, and validation notes
 ```
 
 ## Key Concepts
@@ -218,6 +232,7 @@ The prompts intentionally constrain agents to their assigned scope:
 - `devops-agent` may run as `devops-1` or `devops-2`; each instance prefers non-mutating validation and calls out deploy risk.
 - `review-agent` may run as up to four reviewers; each instance reviews only its delegated scope, leads with findings, and returns PASS or FAIL.
 - `sa-agent` gives design guidance and tradeoffs rather than routine code review.
+- `test-suite-runner` discovers and runs test commands, then reports PASS, FAIL, BLOCKED, or NO TESTS FOUND without fixing code.
 
 ### Plugin
 
@@ -238,17 +253,26 @@ Skills are reusable instructions that the main thread or agents load on demand.
 | `team-documentation` | Keep README, runbook, architecture, API, and spec docs aligned. |
 | `aws-security-guidelines` | Review AWS services for encryption, TLS, logging, tagging, IAM, and production data controls. |
 | `concurrent-cached-fetch` | Add bounded concurrency and disk caching for independent external fan-out calls. |
+| `git-workflow` | Use non-interactive git commands, Conventional Commits, branch naming, pre-push checks, and conflict handling. |
 
 The AWS security guidance strengthens AWS-facing planning and review by making data controls explicit: KMS encryption, TLS enforcement, S3 Block Public Access, access logging, data-classification tags, least-privilege IAM, production-readiness checks, and `.codex/specs/<slug>/` security evidence for durable review notes.
 
-### MCP Servers
+### Plugins And MCP Servers
 
-Project-scoped MCP servers are configured in `.codex/config.toml`. They are available after the project is trusted and Codex reloads its MCP configuration. Review these entries before use because some servers start local `uvx` or `npx` processes and may download packages or access remote documentation services.
+The sample expects current AWS facts to come from installed AWS plugins, not from legacy standalone AWS MCP endpoints. Project-scoped MCP servers are configured in `.codex/config.toml`; plugin-provided MCP tools are supplied by the installed plugins themselves. Review these entries before use because some servers start local `uvx` or `npx` processes and may download packages or access remote documentation services.
+
+Companion plugin routing:
+
+| Plugin | Purpose |
+| --- | --- |
+| `aws-core@agent-toolkit-for-aws` | AWS service, SDK, IAM, Bedrock, serverless, containers, observability, cost, messaging, secrets, and plugin-backed current AWS facts. |
+| `aws-data-analytics@agent-toolkit-for-aws` | Glue, Athena, S3 Tables, S3 Vectors, OpenSearch, data lake, ETL, catalog, analytics, and vector/search workflows. |
+| `superpowers@openai-curated` | Process skills for brainstorming, planning, debugging, TDD, parallel agents, review, and verification-before-completion. |
+
+Configured project MCP servers:
 
 | Server | Transport | Purpose |
 | --- | --- | --- |
-| `aws-knowledge-mcp-server` | Streamable HTTP | AWS knowledge endpoint for AWS service and architecture context. |
-| `awslabs_aws_documentation_mcp_server` | `uvx` stdio | AWS documentation lookup from the AWS Labs MCP server. |
 | `awslabs_aws_iac_mcp_server` | `uvx` stdio | AWS infrastructure-as-code assistance, using `AWS_PROFILE=default`. |
 | `context7` | `npx` stdio | Up-to-date library and framework documentation. |
 | `deepwiki` | Streamable HTTP | Repository and documentation research through DeepWiki. |
@@ -289,6 +313,7 @@ Common artifacts:
 | `review-summary.md` | Lead consolidation when review is split across scopes. |
 | `sa-review.md` | Architecture and Well-Architected style findings. |
 | `decisions.md` | Durable decision log. |
+| `prd.md` | Product requirements and rollout notes when product framing is needed. |
 
 ### Hooks
 
@@ -321,6 +346,11 @@ Rules in `.codex/rules/codex-agent-team.rules` keep selected high-risk commands 
 - `gh pr create`
 - `cdk deploy` and `cdk destroy`
 - `terraform apply` and `terraform destroy`
+- `sam deploy` and `sam delete`
+- `aws cloudformation deploy` and `aws cloudformation delete-stack`
+- `aws s3 rm` and `aws s3 rb`
+- `kubectl delete`
+- `docker system prune`
 
 Rules reduce accidental risky operations. They do not replace sandboxing, code review, least-privilege credentials, or careful approval decisions.
 
@@ -451,7 +481,7 @@ Before adopting this sample for organization use, complete your own approvals:
 | MCP/server integrations | Review project-scoped entries in `.codex/config.toml` before trusting or enabling |
 | Production or cloud-resource access | To be completed by adopter |
 
-See `SECURITY.md` for the threat model.
+See `SECURITY.md` for the threat model and `SECURITY_REVIEW.md` for the current review notes, residual risks, and validation history.
 
 ## License
 

@@ -1,45 +1,45 @@
-# SA Review: <slug>
+# SA Review: <Title>
 
-> Authored by `sa-agent` for architecture, reliability, security, operations, and cost tradeoffs.
+> Authored by `sa-agent`. Pricing, limits, regional availability, and version-sensitive claims should be verified with AWS plugin skills, `aws-mcp`, or AWS IaC MCP where applicable.
 
-## Summary
+## Overview
 
-Decision-oriented recommendation.
+Workload summary: SLAs, traffic patterns, budget, compliance constraints, and what is being assessed.
 
 ## Findings By Pillar
 
 ### Operational Excellence
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
 
 ### Security
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
 
 ### Reliability
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
 
 ### Performance Efficiency
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
 
 ### Cost Optimization
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
 
 ### Sustainability
 
-- [Severity] Finding - recommendation and rationale.
+- [severity] Finding - recommendation
+
+Severity: Critical for outage/breach risk, High for significant impact, Medium for meaningful improvement, Low for optional optimization.
 
 ## Priority Actions
 
-1. <action> - impact, effort, owner.
+1. <action> - impact, effort, owner
 
-## Cost And Risk Notes
+## Cost Impact
 
-- Assumptions:
-- Validation gaps:
-- Rollout:
-- Rollback:
-
+| Item | Current Monthly | Recommended Monthly | Delta | Source |
+| --- | ---: | ---: | ---: | --- |
+| <resource/service> | $X | $Y | $Z | <source> |

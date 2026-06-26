@@ -1,10 +1,10 @@
 # Spec: <Title>
 
-> Slug: `<kebab-case-slug>` - Status: Draft | Approved | In Progress | Done - Last updated: YYYY-MM-DD
+> Slug: `<kebab-case-slug>` | Status: Draft | Approved | In Progress | Done | Last updated: YYYY-MM-DD
 
 ## Problem / Goal
 
-Describe the user-facing or engineering outcome.
+What we are solving and why. State the user-facing or business outcome in one paragraph.
 
 ## Requirements
 
@@ -14,35 +14,34 @@ Describe the user-facing or engineering outcome.
 
 ### Non-Functional
 
-- Performance:
-- Security:
-- Operability:
-- Cost:
+- Performance / latency / throughput targets
+- Security and compliance constraints
+- Cost ceiling, if any
+- Operability requirements: logs, metrics, alarms, runbooks
 
-## Constraints & Assumptions
+## Constraints And Assumptions
 
-- <hard constraint>
-- <assumption to validate>
-- For environment-facing smoke or deploy checks, state the required non-production target validation, retry/timeout budget, abort criteria, and evidence that must be captured.
+- Hard constraints
+- Assumptions that need validation
 
 ## Design Decisions
 
 | Decision | Choice | Alternatives Considered | Rationale |
 | --- | --- | --- | --- |
-| <topic> | <choice> | <alternatives> | <why> |
+| <topic> | <choice> | <alternatives> | <reason> |
 
-## Interfaces & Contracts
+## Interfaces And Contracts
 
-Pin exact names, signatures, payloads, environment variables, commands, paths, resource names, and error behavior that parallel tasks depend on.
+Shared types, API signatures, resource names, ARNs, event schemas, payloads, env vars, and outputs that tasks produce or consume.
 
-## Edge Cases & Risks
+## Edge Cases And Risks
 
-- <edge case> - <expected behavior>
-- <risk> - <mitigation>
+- <edge case> -> <expected behavior>
+- <risk> -> <mitigation / reversibility>
 
 ## Out Of Scope
 
-- <non-goal>
+What this spec deliberately does not cover.
 
 ## Open Questions
 

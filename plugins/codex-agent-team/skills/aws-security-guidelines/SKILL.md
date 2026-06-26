@@ -14,6 +14,7 @@ Use these service-specific security requirements for AWS work. Apply them when c
 - Do not run mutating AWS, CDK, Terraform, or deployment commands unless the user explicitly requests or approves them.
 - When proposing mutating commands, state the expected impact and verification command.
 - Never inline secrets in code, docs, config, tests, prompts, or command examples.
+- Pair this skill with AWS Core/Data Analytics plugin skills for service-specific implementation guidance. Verify current AWS facts with `aws-mcp` and use the AWS IaC MCP server for CloudFormation/CDK validation when applicable.
 - Convert any durable security notes from this skill into repo-local `.codex/specs/<slug>/` artifacts when a spec workflow is in play.
 
 ## Data Security Implementation Order

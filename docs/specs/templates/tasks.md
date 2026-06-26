@@ -1,20 +1,15 @@
 # Tasks: <slug>
 
-> Tasks are coordination artifacts for the main thread and spawned agents. They are not a live task store.
+Tasks are organized into parallel waves. Tasks in one wave may run at the same time only when their file scopes do not overlap.
 
-## Wave 1: <name>
+## Wave 1: <description>
 
-- [ ] [coding] <verb> <what> | `<file path>`, `<file path>` | <acceptance>. Verify: `<command>`
-- [ ] [devops] <verb> <what> | `<file path>` | <acceptance>. Verify: `<command>`
+Spec ref: `spec.md#<section>` - <what this implements>.
 
-## Wave 2: <name>
+- [ ] [coding] <verb> <what> | `<file paths>` | <acceptance criteria>. Run: `<command>`
+- [ ] [devops] <verb> <what> | `<file paths>` | <acceptance criteria>. Run: `<command>`
+- [ ] [sa] <verb> <what> | `<file paths>` | <acceptance criteria>. Run: `<command>` or `[skip-verify]`
 
-- [ ] [review] Review <scope> | `<review-scope files>` | PASS/FAIL verdict recorded in `review-<scope>.md`. Verify: inspect diff and run relevant checks.
+## Completion Notes
 
-## Task Rules
-
-- Tasks in the same wave must be file-disjoint.
-- Each task must include exact file scope and a verification step.
-- Devops or environment-facing smoke tasks must include non-production target validation, bounded retry/timeout behavior, abort criteria, and evidence capture.
-- Add a new wave only for real dependencies.
-- If a task needs files outside its scope, stop and update this plan before editing.
+Use `> Done. <summary>` under completed items. Use `[!]` and a blocker note for blocked work.

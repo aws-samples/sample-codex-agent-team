@@ -1,0 +1,5 @@
+interface:
+  display_name: "Git Workflow"
+  short_description: "Conventional commits, branch names, non-interactive git, and PR hygiene."
+policy:
+  allow_implicit_invocation: true

@@ -1,103 +1,119 @@
 ---
 name: team-coordination
-description: Coordinate the hybrid Codex team with explicit subagent prompts, file-disjoint task waves, and main-thread consolidation. Use when parallel work or role-based delegation is requested.
+description: Coordinate the hybrid Codex team with explicit subagent prompts, file-disjoint task waves, worker pools, synthesizer-led review, and main-thread consolidation. Use when parallel work or role-based delegation is requested.
 ---
 
 # Team Coordination
 
-Use this skill when the user wants the Codex team to work in a lead/member pattern instead of a single thread doing everything.
+Use this skill when the user wants a lead/member workflow, role specialization, or parallel delegation.
 
-## Key Constraint
+## Core Constraint
 
-Do not assume Claude-style task tools exist. Coordination is explicit:
+Codex coordination is explicit. Do not assume Claude-style task-store tools exist.
 
-- shared spec artifacts in `.codex/specs/<slug>/`
-- narrow subagent prompts
-- clear file boundaries
+Use:
+- shared `.codex/specs/<slug>/` artifacts
+- precise subagent prompts
+- exact file scopes
 - lead consolidation in the main thread
 
-## Recommended Role Split
+## Role Split
 
-- `fullstack-agent`: planning, spec upkeep, task partitioning, review arbitration
-- `coding-agent`: product code and tests
-- `devops-agent`: infrastructure, CI/CD, deployment, env wiring
-- `review-agent`: correctness, security, regression, tests
-- `sa-agent`: architecture, reliability, cost, operations
+- `fullstack-agent`: planning, spec upkeep, task partitioning, review arbitration, documentation close-out.
+- `coding-agent`: product code, tests, refactors, focused fixes.
+- `devops-agent`: infrastructure, CI/CD, deployment, containers, environment wiring, runbooks.
+- `review-agent`: correctness, security, regression, performance, missing-test review.
+- `sa-agent`: architecture, reliability, cost, security posture, operations.
 
-## Parallel Worker Pools
+## Worker Pools
 
-Use the same pool shape as the Claude Code sample, translated to Codex's explicit subagent prompts:
+Size pools to the widest independent wave:
 
-| Role | Cap | Naming | Use |
+| Role | Cap | Names | Use |
 | --- | ---: | --- | --- |
-| `coding-agent` | 6 | `coding-1` ... `coding-6` | File-disjoint product code, tests, refactors, and fixes |
-| `devops-agent` | 2 | `devops-1` ... `devops-2` | File-disjoint CI/CD, infra, environment, and runbook work |
-| `review-agent` | 4 | `review-1` ... `review-4` or scope names like `review-api` | Parallel per-scope review |
-| `sa-agent` | 1 | `sa-1` or a scope name | Architecture, reliability, cost, operations |
+| `coding-agent` | 6 | `coding-1` ... `coding-6` | File-disjoint code/tests/refactors/fixes |
+| `devops-agent` | 2 | `devops-1` ... `devops-2` | File-disjoint CI/CD/infra/env/runbook work |
+| `review-agent` | 4 | `review-1` ... `review-4` | One synthesizer plus optional analysts |
+| `sa-agent` | 1 | `sa-1` | Architecture/cost/reliability/security |
 
-These are ceilings, not quotas. Spawn fewer agents when the wave has fewer independent scopes. Do not spawn idle agents.
+Caps are not quotas. Spawn fewer agents when there are fewer independent scopes.
 
-Codex does not provide Claude-style `TeamCreate`, `TaskCreate`, `TaskUpdate`, or a shared task queue in this workflow. The coordinator must assign each spawned Codex subagent an explicit instance name, file scope, expected output, and verification command. Use `.codex/specs/<slug>/tasks.md` as the durable plan and record consolidation notes there or in `decisions.md`.
+## Prompt Requirements
 
-## Prompt Shape For Spawned Agents
+Every subagent prompt must include:
+- role agent to use
+- instance name
+- spec path
+- wave/task reference
+- exact file scope
+- acceptance criteria
+- verification command
+- expected output
+- warning not to edit outside listed files
+- warning that peer agents may be editing nearby files
+- whether the lead should wait for all agents before consolidation
 
-Every lead-authored subagent prompt should include:
-
-- the role to use
-- the instance name, such as `coding-2`, `devops-1`, or `review-api`
-- the spec path
-- the exact file scope
-- the expected output
-- the verification expectation
-- a warning that peer instances may be editing nearby files concurrently
-- whether the lead should wait for all agents before consolidating
-
-Example structure:
+Example:
 
 ```text
 Use `coding-agent`.
 You are `coding-2`, one of up to 6 parallel coding instances.
-Scope: implement the parser changes in `src/parser.ts` and `src/parser.test.ts`.
-Context: `.codex/specs/log-parser/spec.md` and Wave 2 in `tasks.md`.
-Deliver: code changes plus a short summary of what changed, tests run, and residual risks.
-Do not edit files outside the listed scope.
-Other coding/devops instances may be running concurrently; do not overwrite their work.
+Context: `.codex/specs/orders-api/spec.md`, `design.md`, and Wave 2 in `tasks.md`.
+Scope: implement only `src/orders/handler.ts` and `src/orders/handler.test.ts`.
+Acceptance: handler validates input and returns the response shape from `spec.md#interfaces`.
+Run: `npm test -- orders/handler`.
+Do not edit files outside this scope; other coding/devops instances may be running concurrently.
+Return files changed, verification result, blockers, and residual risks.
 ```
 
 ## Parallelism Rules
 
 - Parallelize read-heavy exploration freely.
 - Parallelize write-heavy work only when file scopes do not overlap.
-- Author wide waves: many small file-disjoint tasks in the same wave beat a few broad tasks.
-- Use up to 6 coding instances and 2 devops instances only when there are enough independent implementation scopes.
-- Keep one review agent per scope when the changed file sets are meaningfully separable.
-- Use up to 4 review instances for disjoint review scopes; each reviewer owns exactly one scope and one review artifact if artifacts are requested.
-- Ask the main thread to wait for all spawned agents before consolidating.
+- Author many small tasks instead of a few broad tasks.
+- Keep waves wide and barriers few.
+- Front-load shared interfaces.
+- Keep coding and devops work file-disjoint.
+- Use worktrees only for a documented overlap that cannot be decomposed.
 
-## Ops Smoke And Deploy Guardrails
+## Review Coordination
 
-For smoke, staging, deploy, or other environment-facing tasks, put these requirements into the task acceptance criteria and subagent prompt:
+Small review:
+- Spawn one `review-agent`.
+- It acts as synthesizer and owns the verdict.
 
-- disposable or explicitly non-production target validation
-- required environment variables or parameters
-- target allowlist or production denylist when endpoint checks are involved
-- bounded retry count, timeout, delay, and abort criteria
-- evidence capture: command output, target classification, candidate artifact or build identifier, and final PASS or FAIL
+Parallel review:
+- Spawn `review-1` as Synthesizer.
+- Spawn `review-2` through `review-4` as Analysts when there are independent slices.
+- Analysts write no files. They return structured findings to the synthesizer.
+- The synthesizer writes `review.md`, checks cross-slice consistency, and emits the single wave verdict.
 
-If review or SA finds missing guardrails, create a fix wave, rerun the affected review scope, and update the lead summary or review summary.
+Analyst prompt must include:
+- `Role: Analyst`
+- synthesizer name
+- slice files
+- cycle number
+- advisory slice verdict only
 
-## Spawn Failure Handling
+Synthesizer prompt must include:
+- `Role: Synthesizer`
+- analyst names and expected slices
+- instruction to wait for analysts or report missing analyst results
+- instruction to author only `review.md`
 
-If subagent creation fails before execution with a model or engine routing error such as `404 Not Found: Engine not found`:
+## Consolidation
 
-- close the failed agent
-- retry the same bounded scope without changing file ownership
-- if inherited-model retries keep failing, retry with a supported explicit model override
-- record the operational note in the relevant spec artifact
+After each wave:
+- Summarize subagent outcomes.
+- Update `tasks.md` with `[x]`, `[!]`, or remaining work.
+- Record decisions, blockers, deviations, and accepted risks in `decisions.md`.
+- If review FAILs, create a fix wave.
+- If review cannot run, report an open gate instead of fabricating PASS.
 
-## Consolidation Rules
+## Degraded Workflow
 
-- Summarize subagent outcomes rather than replaying raw transcripts.
-- Update `.codex/specs/<slug>/tasks.md`, `decisions.md`, and review artifacts after each wave.
-- Record blockers as explicit decisions or open questions so the next wave has stable context.
-- If any review scope reports FAIL, the full wave fails. Convert findings into a fix wave and review again.
+If required subagent capability is unavailable:
+1. State the exact missing capability or failed call.
+2. Explain what is lost: parallelism, adversarial review, or isolation.
+3. Ask for explicit user approval before proceeding single-threaded.
+4. If approved, mark any self-review as `SELF-REVIEW. Real review pending.`

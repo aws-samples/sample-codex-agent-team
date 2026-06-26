@@ -1,4 +1,4 @@
-# Concurrent + Cached Fetch - Implementation Patterns
+# Concurrent + Cached Fetch — Implementation Patterns
 
 Ready-to-adapt building blocks. Pick the language/HTTP-client pair that matches the
 project. Each pattern combines a **bounded concurrency** primitive with a **content-keyed
@@ -7,7 +7,7 @@ surrounding code; don't paste verbatim if the project has its own conventions.
 
 ## Table of contents
 - [Cache key + atomic write (language-agnostic recipe)](#cache-key--atomic-write)
-- [Python: threaded + cached `requests`](#python-threaded--cached-requests) <- most common
+- [Python: threaded + cached `requests`](#python-threaded--cached-requests) ← most common
 - [Python: asyncio + cached `httpx`](#python-asyncio--cached-httpx)
 - [JS/TS: `Promise` pool + cached `fetch`](#jsts-promise-pool--cached-fetch)
 - [Go: bounded goroutines + cached `net/http`](#go-bounded-goroutines--cached-nethttp)
@@ -23,7 +23,7 @@ so a crash never leaves a corrupt entry that later reads as valid.
 - **Key inputs:** HTTP method, full URL, sorted query params, and request body (for
   POST/PUT). Serialize them canonically (sorted keys), then SHA-256.
 - **Filename:** `<cache_dir>/<hexdigest>.json`.
-- **Atomic write:** write to `<file>.tmp.<pid>`, then `rename()` onto the final path -
+- **Atomic write:** write to `<file>.tmp.<pid>`, then `rename()` onto the final path —
   rename is atomic on POSIX, so readers see either the old file or the complete new one,
   never a partial.
 - **No expiry:** if the file exists, use it. The only bypass is an explicit
@@ -35,7 +35,7 @@ so a crash never leaves a corrupt entry that later reads as valid.
 ## Python: threaded + cached `requests`
 
 The default for code already using the blocking `requests` library. Threads are the
-right tool - these calls are I/O-bound, so the GIL is released during the socket wait and
+right tool — these calls are I/O-bound, so the GIL is released during the socket wait and
 threads give real concurrency.
 
 ```python
@@ -67,7 +67,7 @@ def cached_get(url, params=None, *, refresh=False, timeout=10):
             return json.load(f)
 
     resp = requests.get(url, params=params, timeout=timeout)
-    resp.raise_for_status()  # don't cache errors - let the caller retry live next run
+    resp.raise_for_status()  # don't cache errors — let the caller retry live next run
     try:
         data = resp.json()
     except ValueError:
@@ -97,8 +97,8 @@ def fetch_all(items, fetch_one, max_workers=_MAX_WORKERS):
 
 Applied to a two-step lookup tool: the per-ID details loop becomes
 `fetch_all(id_list, lambda i: cached_get(DETAILS_API_URL.format(id=i)))`, and the
-top-level term->IDs lookup uses `cached_get`. Keep the tool's existing return shape and
-error encoding - wrap the helpers, don't change the public contract.
+top-level term→IDs lookup uses `cached_get`. Keep the tool's existing return shape and
+error encoding — wrap the helpers, don't change the public contract.
 
 ---
 
@@ -347,7 +347,7 @@ public final class CachedFetch {
 
 ## Checklist before you call the fetch code done
 
-- [ ] Independent calls run concurrently with a **bounded** pool (~10-20).
+- [ ] Independent calls run concurrently with a **bounded** pool (~10–20).
 - [ ] Every successful response is written to a **disk** cache, keyed by request content.
 - [ ] Cache has **no expiry**; a `refresh` arg / `CACHE_BYPASS=1` env var forces a live call.
 - [ ] Failures are **not** cached; one item's error doesn't abort the batch.

@@ -101,3 +101,83 @@ prefix_rule(
         "terraform destroy -auto-approve",
     ],
 )
+
+prefix_rule(
+    pattern = ["sam", "deploy"],
+    decision = "prompt",
+    justification = "SAM deploys mutate AWS resources and should be reviewed before leaving the sandbox.",
+    match = [
+        "sam deploy",
+        "sam deploy --guided",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sam", "delete"],
+    decision = "prompt",
+    justification = "SAM delete removes AWS resources and requires explicit approval with an impact statement.",
+    match = [
+        "sam delete",
+        "sam delete --stack-name MyStack",
+    ],
+)
+
+prefix_rule(
+    pattern = ["aws", "cloudformation", "deploy"],
+    decision = "prompt",
+    justification = "CloudFormation deploys mutate AWS resources and should be reviewed before leaving the sandbox.",
+    match = [
+        "aws cloudformation deploy",
+        "aws cloudformation deploy --template-file template.yaml --stack-name MyStack",
+    ],
+)
+
+prefix_rule(
+    pattern = ["aws", "cloudformation", "delete-stack"],
+    decision = "prompt",
+    justification = "CloudFormation stack deletion removes AWS resources and requires explicit approval with an impact statement.",
+    match = [
+        "aws cloudformation delete-stack",
+        "aws cloudformation delete-stack --stack-name MyStack",
+    ],
+)
+
+prefix_rule(
+    pattern = ["aws", "s3", "rm"],
+    decision = "prompt",
+    justification = "S3 object deletion can remove user or production data and should be approved explicitly.",
+    match = [
+        "aws s3 rm s3://bucket/key",
+        "aws s3 rm s3://bucket/prefix --recursive",
+    ],
+)
+
+prefix_rule(
+    pattern = ["aws", "s3", "rb"],
+    decision = "prompt",
+    justification = "S3 bucket removal can delete storage boundaries and should be approved explicitly.",
+    match = [
+        "aws s3 rb s3://bucket",
+        "aws s3 rb s3://bucket --force",
+    ],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "delete"],
+    decision = "prompt",
+    justification = "Kubernetes delete commands can remove running resources and should be approved explicitly.",
+    match = [
+        "kubectl delete pod example",
+        "kubectl delete namespace example",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "system", "prune"],
+    decision = "prompt",
+    justification = "Docker system prune removes local containers, networks, images, and caches and should be approved explicitly.",
+    match = [
+        "docker system prune",
+        "docker system prune --all",
+    ],
+)

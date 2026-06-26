@@ -31,7 +31,8 @@
       "Plan this work with the Codex hybrid team",
       "Break this feature into parallel coding, devops, review, and architecture scopes",
       "Turn this idea into a `.codex/specs` plan",
-      "Review this AWS design or IaC with `$aws-security-guidelines`"
+      "Review this AWS design or IaC with `$aws-security-guidelines`",
+      "Use `$git-workflow` to prepare a safe branch, diff, commit, or PR handoff"
     ],
     "brandColor": "#145A32"
   }

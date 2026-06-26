@@ -2,20 +2,14 @@
 max_threads = 14
 max_depth = 2
 
-[mcp_servers."aws-knowledge-mcp-server"]
-url = "https://knowledge-mcp.global.api.aws"
+[plugins."aws-core@agent-toolkit-for-aws"]
 enabled = true
 
-[mcp_servers.awslabs_aws_documentation_mcp_server]
-command = "uvx"
-args = ["awslabs.aws-documentation-mcp-server@latest"]
-startup_timeout_sec = 120
-tool_timeout_sec = 120
+[plugins."aws-data-analytics@agent-toolkit-for-aws"]
 enabled = true
 
-[mcp_servers.awslabs_aws_documentation_mcp_server.env]
-FASTMCP_LOG_LEVEL = "ERROR"
-AWS_DOCUMENTATION_PARTITION = "aws"
+[plugins."superpowers@openai-curated"]
+enabled = true
 
 [mcp_servers.awslabs_aws_iac_mcp_server]
 command = "uvx"

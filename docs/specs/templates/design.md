@@ -1,57 +1,50 @@
 # Design: <Title>
 
-> Architecture, module layout, integration contracts, and operational design for `<slug>`.
+> Architecture, repository structure, and infrastructure design for `<slug>`. Keep Security Considerations for production-impacting or AWS-heavy work.
 
 ## Architecture Overview
 
-Describe components and how requests, data, or control flow through them.
-
-```text
-<ASCII diagram or link to diagram>
-```
+High-level description, components, and request/data flow. Link or include diagrams when useful.
 
 ## Repository / Module Structure
 
 ```text
-<tree of directories and key files this work will create or touch>
+<tree of dirs and key files this work will create or touch>
 ```
 
 ## Components
 
 ### <Component Name>
 
-- Responsibility:
-- Interface:
-- Dependencies:
+- Responsibility: <what it owns>
+- Interface: <public API / events / inputs and outputs>
+- Dependencies: <upstream/downstream>
 
 ## Data Model
 
-Describe entities, schemas, storage choices, retention, and sensitivity.
+Entities, schemas, storage choices, retention, and data classification.
 
 ## Infrastructure Design
 
-Describe environments, deploy path, rollback path, config, outputs, and operational dependencies.
-
-For smoke, staging, or deployment checks, include:
-
-- Target classification and non-production preflight.
-- Required environment variables or parameters.
-- Retry count, timeout, delay, and abort criteria.
-- Evidence to capture, such as command output, target classification, artifact identifier, and final PASS or FAIL.
+AWS services, IaC approach, environments, deploy/rollback strategy, and outputs consumed by application code or other stacks.
 
 ## Security Considerations
 
-- Authentication and authorization:
-- Secrets management:
-- Data protection:
-- Network exposure:
-- Logging and audit:
-- Non-production target guardrails for smoke or deploy checks:
-- Threat model notes:
+Reconcile against `aws-security-guidelines` when AWS or production data is involved.
 
-## Trade-offs & Alternatives
+- Authentication and authorization
+- Least-privilege IAM
+- Encryption at rest
+- Encryption in transit
+- Secrets management
+- Network exposure
+- Logging and audit
+- Data classification and tagging
+- Threat model notes
 
-Document what was considered and rejected.
+## Tradeoffs And Alternatives
+
+What was considered and rejected, with reasoning.
 
 ## Open Design Questions
 
