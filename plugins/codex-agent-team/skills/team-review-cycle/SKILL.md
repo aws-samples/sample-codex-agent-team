@@ -26,6 +26,8 @@ Small changes can use one reviewer. Broad changes use parallel review:
 - Synthesizer: exactly one reviewer, usually `review-1`; sole author of `review.md` and final verdict.
 - Analyst: `review-2` through `review-4`; reviews one slice, writes no files, returns structured findings to the synthesizer.
 
+If an existing `review.md` was authored by the implementer or lead, treat it as a TODO marker and run a fresh adversarial review.
+
 ## Analyst Findings Format
 
 ```text
@@ -88,8 +90,18 @@ Reason: <one-line if FAIL>
 
 - FAIL if any Critical or Warning remains.
 - FAIL if required verification is absent.
+- FAIL or mark the gate open when IaC, deploy scripts, CI/CD, or shell tooling only passed static checks but required live validation did not run.
 - PASS only when the scoped change is acceptable as-is.
 - Suggestions do not block PASS.
+
+## Review Discipline
+
+- Re-read the exact current file before citing `file:line`; stale line numbers and already-fixed findings waste review cycles.
+- Empirically test before raising a Critical when a claim is executable. If you cannot run it, rate it as a Warning and label it requires live validation.
+- Classify runtime/cloud-semantics concerns as static-verifiable or requires-live-validation.
+- Verify the verifier: a passing check that does not assert the claimed behavior is itself a verification gap.
+- Check that the task `Run:` command matches the acceptance criteria and CI-blocking gates, not just a convenient subset.
+- For long review or verification runs, return a concise heartbeat in the handoff so the lead does not treat silence as failure.
 
 ## Cycle Focus
 

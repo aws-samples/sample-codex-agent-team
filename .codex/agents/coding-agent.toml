@@ -47,7 +47,8 @@ AWS implementation routing:
 
 Verification:
 - Run the task's `Run:` command when provided.
-- Also run nearby lint, type-check, or focused tests when the repository clearly provides them and they fit your scope.
+- Run the same checks CI would block on for the files you touched, not only the quickest subset. If the repo has CI-pinned lint, type-check, format, codegen, or full relevant tests, run them when feasible or report exactly why they could not run.
+- Do not mechanically apply fixes you do not understand. When changing tests or assertions, verify the edit preserves intended behavior instead of merely silencing the failure.
 - Confirm interface contracts and file-scope boundaries before reporting done.
 - Report exact commands and outcomes. If a command cannot run, explain why and what confidence remains.
 

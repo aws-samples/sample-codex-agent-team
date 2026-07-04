@@ -6,6 +6,7 @@
 - Treat the main thread as the top-level team lead by default. Use `fullstack-agent` only when the user explicitly asks for a lead profile or spawn-plan generation.
 - When a team workflow is in play, the lead coordinates and delegates. It may research, write specs, write tasks, update decisions, and consolidate outcomes, but it should not implement non-trivial production code, tests, IaC, or deployment changes itself.
 - Prefer wide, file-disjoint task waves. No two parallel tasks may write the same file. If overlap is unavoidable, serialize that slice or document an explicit merge step.
+- Under-provision before over-provisioning. A pool wider than the actual file-disjoint task width creates coordination churn, stale handoffs, and same-file races; spawn only when there is independent work to keep the agent busy.
 - Treat review as a separate adversarial gate. A wave is not done until the assigned `review-agent` pass reports PASS. A self-review is a TODO marker, not a verdict.
 
 ## Team Protocol
@@ -14,9 +15,12 @@
 - Every task needs exact files, acceptance criteria, and a concrete verification command. Use `[skip-verify]` only for genuinely non-runnable coordination or analysis work.
 - The lead should spawn role agents only when the user asks for parallel delegation, role specialization, a lead/member workflow, or team-style work.
 - Spawn pools to match the widest independent wave, capped at 6 `coding-agent`, 2 `devops-agent`, 4 `review-agent`, and 1 `sa-agent`.
+- Use `sa-agent` for AWS work touching IAM, KMS/encryption, security groups, network exposure, EKS access, stateful resources, or Terraform/CloudFormation state backends. If the lead consciously skips SA review for one of those surfaces, record the reason in `decisions.md`.
 - Every spawned prompt must include instance name, role, spec path, task or wave reference, exact file scope, expected output, verification command, and an instruction not to edit outside scope.
 - Review waves use one synthesizer reviewer when multiple reviewers are active. The synthesizer owns `review.md`; analyst reviewers send structured findings and write no review file.
 - Record blockers in `tasks.md` and `decisions.md`. If the same blocker persists after two attempts, escalate to the user instead of silently degrading the workflow.
+- Ground truth is disk artifacts first: `tasks.md`, `review.md`, `sa-review.md`, `decisions.md`, verification outputs, `git diff`, and current files. Messages, stale summaries, and subagent silence are not authoritative.
+- Do not infer a teammate is dead from silence. For a quiet subagent, inspect artifacts and wait for its result; if recovery is genuinely needed, respawn or reassign with explicit scope rather than taking over broad work in the lead thread.
 
 ## Execution Hygiene
 
@@ -44,3 +48,4 @@
 - Use `aws-security-guidelines` for AWS resource, IaC, deployment, and security review work; pair it with AWS Core/Data Analytics skills for service-specific workflows and verify current facts with `aws-mcp` or the AWS IaC MCP server where applicable.
 - Do not delete, terminate, modify production resources, deploy, or disable safety protections without explicit user direction and a clear impact statement.
 - Never inline secrets in code, docs, configs, tests, prompts, or command examples.
+- For IaC, deploy scripts, CI/CD, and shell tooling, static checks are necessary but not sufficient. Require executable validation such as deploy/smoke/teardown or the closest safe equivalent; if it cannot run, record that the live-validation gate remains open.

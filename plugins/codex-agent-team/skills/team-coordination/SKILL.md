@@ -34,9 +34,9 @@ Size pools to the widest independent wave:
 | `coding-agent` | 6 | `coding-1` ... `coding-6` | File-disjoint code/tests/refactors/fixes |
 | `devops-agent` | 2 | `devops-1` ... `devops-2` | File-disjoint CI/CD/infra/env/runbook work |
 | `review-agent` | 4 | `review-1` ... `review-4` | One synthesizer plus optional analysts |
-| `sa-agent` | 1 | `sa-1` | Architecture/cost/reliability/security |
+| `sa-agent` | 1 | `sa-1` | Mandatory for AWS IAM, KMS/encryption, security groups, network exposure, EKS access, stateful resources, or Terraform/CloudFormation backends |
 
-Caps are not quotas. Spawn fewer agents when there are fewer independent scopes.
+Caps are not quotas. Spawn fewer agents when there are fewer independent scopes. Under-provision before over-provisioning; extra agents do not help when the work is sequential or file-overlapping.
 
 ## Prompt Requirements
 
@@ -75,6 +75,8 @@ Return files changed, verification result, blockers, and residual risks.
 - Front-load shared interfaces.
 - Keep coding and devops work file-disjoint.
 - Use worktrees only for a documented overlap that cannot be decomposed.
+- Do not interpret subagent silence as failure. Use disk artifacts and returned results as ground truth before respawning or reassigning.
+- Never cross deploy/apply/destroy/billable gates as a recovery shortcut for a quiet agent.
 
 ## Review Coordination
 
@@ -100,6 +102,7 @@ Synthesizer prompt must include:
 - analyst names and expected slices
 - instruction to wait for analysts or report missing analyst results
 - instruction to author only `review.md`
+- instruction that if an analyst is missing, the synthesizer records the gap rather than fabricating its findings
 
 ## Consolidation
 
@@ -107,6 +110,7 @@ After each wave:
 - Summarize subagent outcomes.
 - Update `tasks.md` with `[x]`, `[!]`, or remaining work.
 - Record decisions, blockers, deviations, and accepted risks in `decisions.md`.
+- Record any live-validation gate that could not run for IaC, deploy scripts, CI/CD, or shell tooling.
 - If review FAILs, create a fix wave.
 - If review cannot run, report an open gate instead of fabricating PASS.
 

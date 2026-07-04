@@ -55,9 +55,20 @@ Standards:
 6. Export outputs that application code depends on. Match exact names/types from the spec.
 7. Avoid hardcoded values, non-deterministic names, and drift-prone patterns.
 
+Safe-by-construction scripts and IaC:
+- Never silently override an explicit input. If a config file is sourced after the caller exported a value, preserve the caller's value or log the intentional override.
+- Assert the target before acting on ambient state. Pin and verify AWS region/profile, kubectl context/namespace, Terraform workspace/backend/state, and deployment stage before plan/apply/smoke/teardown.
+- Pass `--region` on AWS CLI calls in deploy/teardown paths unless the command does not support it and the chosen region is otherwise asserted.
+- Teardown is non-abandonable. Initialize against the real backend, fail loudly, avoid `|| true` around destroy, and independently query for leftover resources before calling teardown complete.
+- Do not parse interleaved parallel command stdout into distinct files or variables. If parsed output feeds a specific artifact, run those commands sequentially or write each command to a separate destination.
+- Capture the command's real exit status, not the pipeline tail. Use `set -o pipefail`, `${PIPESTATUS[0]}`, or explicit status capture around logging wrappers.
+- Do not leave TODO placeholders in place of deliverables. If a gate is blocked, record the blocker and strongest substitute validation.
+- Before completing IaC, self-check the AWS-security baseline: KMS where required, scoped security-group egress, backend encryption matching docs, versioning/logging/tags for classified storage, and no cluster-admin defaults without justification.
+
 Verification:
 - Run the task's `Run:` command when provided.
 - Prefer non-mutating validation: `terraform plan`, `cdk synth`, `cdk diff`, CloudFormation validation, config lint, workflow lint, container build, SAM build/local invoke, or dry-run deploy.
+- Static validation is not sufficient for deploy scripts, CI/CD, shell tooling, or IaC that has an executable path. Run deploy/smoke/teardown or the closest safe live equivalent when approved and available; otherwise report the live-validation gate as open.
 - Verify data-security requirements in priority order for sensitive AWS resources: encryption at rest, encryption in transit, access logging, data-classification tags.
 - Report exact commands and outcomes. If a command cannot run, explain why and what confidence remains.
 

@@ -46,7 +46,15 @@ Review method:
 5. Review performance: N+1 queries, sequential uncached external fan-out, unbounded concurrency, cached failures, committed cache dirs.
 6. Review maintainability: naming, unnecessary complexity, project conventions, docs accuracy.
 7. For infrastructure, check outputs, tags, deterministic names, no inline secrets, parameterization, rollback path, and plan safety.
-8. Check completion notes and verification commands. Required verification gaps are Warnings.
+8. Check completion notes and verification commands. Verify that the stated `Run:` command actually exercises what the completion claims; a narrow command where CI would block on broader lint/type/test coverage is a Warning.
+
+Review discipline:
+- Re-read the exact current file before citing `file:line`. Do not report from memory, stale summaries, or old line numbers.
+- Empirically test before raising a Critical when the claim is executable. If you cannot run it, rate it as a Warning and label it as requiring live validation.
+- Classify findings as static-verifiable or requires-live-validation when runtime/cloud semantics matter.
+- Verify the verifier. If a passing check is too weak to prove the claimed behavior, the finding is to fix the check or record the verification gap, not just fix instances.
+- Treat any lead-authored or implementer-authored `review.md` PASS as a TODO marker. Start a fresh adversarial review.
+- If a review step will take a long time, say what is still running in the handoff so the lead does not misread quiet verification as a dead reviewer.
 
 AWS-specific review:
 - Use `aws-core:aws-iam` for policy evaluation, trust-policy, STS, and least-privilege edge cases.
@@ -66,6 +74,7 @@ Severity:
 Verdict:
 - FAIL if any Critical or Warning remains, or required verification is absent.
 - PASS only when the scoped change is acceptable as-is.
+- Do not PASS IaC, deploy scripts, CI/CD, or shell tooling solely on static checks when an executable live-validation gate is required but has not run. Mark the gate open or FAIL depending on the handoff criteria.
 - Suggestions do not block PASS.
 
 Synthesizer output shape:

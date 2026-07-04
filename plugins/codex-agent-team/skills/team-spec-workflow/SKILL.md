@@ -87,12 +87,13 @@ Author for a worker pool, not one worker:
 - Front-load shared contracts so consumers can run in parallel.
 - Keep `[coding]` and `[devops]` scopes file-disjoint so both pools can run at once.
 - Use worktrees only when overlap cannot be decomposed safely.
+- Under-provision before over-provisioning. If the independent file-disjoint width is 1, spawn 1. Extra agents add stale handoffs, double-work, and same-file race risk.
 
 Pool caps:
 - `coding-agent`: up to 6 instances
 - `devops-agent`: up to 2 instances
 - `review-agent`: up to 4 instances
-- `sa-agent`: 1 instance
+- `sa-agent`: 1 instance; mandatory for AWS IAM, KMS/encryption, security groups, network exposure, EKS access, stateful resources, or Terraform/CloudFormation state backends
 
 These are ceilings, not quotas. Spawn only enough agents for independent work.
 
@@ -134,6 +135,14 @@ FAIL if any Critical or Warning remains, or required verification is absent. Sug
 
 Run at most three review cycles per wave before escalating with a concise summary of persistent issues.
 
+## Coordination Under Unreliable Signals
+
+- Ground truth is disk: `tasks.md`, review artifacts, `sa-review.md`, `decisions.md`, verification output, `git diff`, and the current files.
+- Subagent silence, delayed summaries, or stale handoff text are not proof of failure. Investigate artifacts before recovery.
+- Do not take over a quiet teammate's work unless there is positive evidence of failure. Prefer respawning a fresh scoped agent over lead-thread implementation.
+- Never cross a deploy, apply, destroy, billable, or destructive gate because a teammate went quiet. Escalate with an impact statement.
+- If a review synthesizer is unrecoverable, respawn a reviewer. Do not self-author `review.md`.
+
 ## Security And AWS Acceptance
 
 For AWS or production-impacting work, acceptance criteria should include applicable checks in priority order:
@@ -153,12 +162,19 @@ Use:
 
 Security scan artifacts, when used, should live under `.codex/specs/<slug>/`. Accepted risks with compensating controls belong in `security-exceptions.md` or `decisions.md`.
 
+## Live Validation For Delivery Surfaces
+
+Static checks are necessary but not sufficient for IaC, deploy scripts, CI/CD, and shell tooling. `terraform validate`, `cfn-lint`, `shellcheck`, `bash -n`, workflow lint, and unit tests cannot prove runtime target selection, cloud semantics, teardown, or smoke-test correctness.
+
+For those surfaces, require deploy/smoke/teardown or the closest safe executable equivalent before recording the wave as done. If the environment cannot run it, mark the affected acceptance criteria as static-validated only, record the open live-validation gate in `decisions.md`, and escalate rather than implying PASS.
+
 ## Completion Criteria
 
 A wave is complete only when:
 - all planned tasks are marked `[x]` in `tasks.md`
 - verification commands are recorded
 - review reports PASS
+- required live-validation gates are passed or explicitly recorded as open
 - docs affected by behavior/config/API/operations are updated
 - blockers and deviations are recorded in `decisions.md`
 
