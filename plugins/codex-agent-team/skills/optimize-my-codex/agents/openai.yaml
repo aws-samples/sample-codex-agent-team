@@ -1,0 +1,4 @@
+interface:
+  display_name: "Optimize My Codex"
+  short_description: "Audit and migrate active Codex configuration"
+  default_prompt: "Use $optimize-my-codex to audit my active Codex setup and automatically apply the exact migration after approval."

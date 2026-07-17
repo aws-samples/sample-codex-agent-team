@@ -1,3 +1,4 @@
 interface:
   display_name: "Team Coordination"
-  short_description: "Coordinate explicit Codex subagent workflows"
+  short_description: "Coordinate file-disjoint Codex role agents"
+  default_prompt: "Use $team-coordination to delegate this work across the smallest useful set of file-disjoint role agents."

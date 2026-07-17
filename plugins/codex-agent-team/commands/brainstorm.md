@@ -1,9 +1,10 @@
 ---
-description: Turn a project idea into `.codex/specs/<slug>/requirements.md` for the Codex hybrid team workflow.
+description: Turn a rough idea into approved requirements for a Codex team workflow.
 ---
 
-Use `team-brainstorm` to turn `$ARGUMENTS` into a requirements document for the hybrid Codex team workflow.
+Use `team-brainstorm` for `$ARGUMENTS`.
 
-Ask the minimum clarifying questions needed to define MVP scope, users, constraints, integrations, non-functional requirements, security/compliance needs, deployment environment, and success criteria. Ask one question at a time.
-
-Save the accepted result to `.codex/specs/<slug>/requirements.md` and suggest the next step: usually `team-spec-workflow` for `spec.md`, `design.md`, and `tasks.md`.
+Ask only material questions one at a time. Obtain approval before writing the
+synthesized requirements to
+`.codex/specs/<kebab-slug>/requirements.md`, then report the path and next
+planning step.

@@ -13,6 +13,7 @@ Mitigations:
 - Keep tasks file-disjoint within a wave.
 - Require agents to report before editing outside their assigned scope.
 - Run independent `review-agent` passes before accepting a wave.
+- Limit the entire team run to three review synthesizer spawns. Replacements and interrupted retries consume the same budget; cycle 3 is terminal.
 - Inspect `git diff --name-only` before committing or shipping changes.
 
 ### Hook Execution
@@ -24,7 +25,8 @@ Mitigations:
 - Review the hook source before trusting it with `/hooks`.
 - Hooks use only the Python standard library.
 - Hooks are fail-open; hook failures should not trap a session.
-- Logged payloads are filtered to a small allowlist and written under `~/.codex/team-logs`.
+- Logged payloads are filtered to a small allowlist. Session events use `~/.codex/team-logs`; subagent lifecycle events honor `$CODEX_HOME/team-logs` and otherwise use `~/.codex/team-logs`.
+- Parallel subagent start/stop events use a file lock around log rotation and append operations to prevent writer races.
 
 ### Command Risk
 
@@ -45,6 +47,20 @@ Mitigations:
 - Inspect `plugins/codex-agent-team/.codex-plugin/plugin.json` and every `SKILL.md`.
 - Install from the checked-in repo marketplace only after review.
 - Do not add MCP servers, app integrations, or executable scripts without separate review.
+
+### Unbounded Review Loops
+
+Repeated review and fix waves can consume resources indefinitely or leave
+teammates running after useful work has stopped.
+
+Mitigations:
+
+- Count a review cycle when its synthesizer is spawned.
+- Share one maximum three-cycle budget across all waves, reviewers,
+  replacements, retries, sessions, and review files.
+- Permit fix waves only after cycles 1 and 2.
+- Treat a cycle 3 non-PASS result as terminal: stop automatic fixes and reviews,
+  close active agents, preserve evidence, and report BLOCKED.
 
 ### Credentials And Production Resources
 
@@ -68,4 +84,3 @@ Mitigations:
 ## Reporting Security Issues
 
 Do not file public issues for sensitive vulnerabilities. Report issues through the maintainer's preferred private security channel for the public repository where this sample is published.
-

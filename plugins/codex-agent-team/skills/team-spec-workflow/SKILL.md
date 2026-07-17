@@ -1,181 +1,250 @@
 ---
 name: team-spec-workflow
-description: Spec-driven hybrid Codex team workflow using `.codex/specs/<slug>/` artifacts, wide file-disjoint task waves, explicit subagent handoffs, synthesizer-led review, and documentation close-out. Use for non-trivial work that needs planning, delegation, architecture decisions, or review loops.
+description: Use when non-trivial work needs durable requirements, architecture decisions, delegated task waves, independent review, or coordinated documentation.
 ---
 
 # Team Spec Workflow
 
-Use this workflow when a task spans multiple files, involves architecture decisions, affects production behavior, or benefits from role-based delegation.
+## Outcome
 
-## Artifact Layout
+Turn an agreed objective into durable, executable team artifacts, then carry
+implementation through file-disjoint task waves, independent review,
+documentation, worker closure, and one evidence-backed final decision.
 
-Store artifacts under `.codex/specs/<slug>/` using a short kebab-case slug.
+Use this workflow for work spanning multiple files, meaningful architecture,
+production behavior, infrastructure, security, delegated implementation, or a
+review/fix loop. Small direct edits do not need artificial ceremony.
 
-```text
-.codex/specs/<slug>/
-  spec.md
-  design.md
-  tasks.md
-  review.md
-  review-summary.md
-  sa-review.md
-  decisions.md
-  requirements.md
-  security-exceptions.md
-  prd/
-```
+## Artifact Directory
 
-Use only the files the task needs. For non-trivial team work, the normal minimum is `spec.md`, `tasks.md`, and a review artifact. Add `design.md` when architecture, data flow, infrastructure, or security details matter. Any production-impacting or AWS-heavy `design.md` must include Security Considerations.
+Use `.codex/specs/<kebab-slug>/`. Prefer:
 
-Template sources, in order:
-1. Repo-local `.codex/specs/templates/`
-2. User-global `~/.codex/specs/templates/`
-3. The section structures in this skill
+1. repository-local `.codex/specs/templates/`
+2. user-global `~/.codex/specs/templates/`
+3. the structures below
 
-## Spec Structure
+Create only the artifacts the task needs:
 
-`spec.md` should capture:
-- problem and goal
+- `requirements.md`: approved users, product behavior, constraints, and
+  exclusions
+- `spec.md`: executable requirements, assumptions, exact interfaces, edge
+  cases, risks, and acceptance
+- `design.md`: architecture, boundaries, data flow, storage, infrastructure,
+  tradeoffs, rollout, and Security Considerations
+- `tasks.md`: task waves, ownership, task status, dependencies, acceptance,
+  commands, and completion evidence
+- `decisions.md`: append-only decisions, blockers, deviations, accepted risks,
+  and open gates
+- `review.md`: synthesizer-owned cycle history and verdicts
+- `sa-review.md`: solution-architecture findings and handoffs
+- optional `prd/` or security evidence required by repository conventions
+
+Do not create parallel copies of the same decision. Link between artifacts and
+name the authoritative section.
+
+## Requirements And Spec
+
+`requirements.md` records approved intent. Do not silently redesign it during
+planning. If research reveals a material product conflict, return to the user
+or record the open question.
+
+`spec.md` should include:
+
+- goal, users, success measures, and traceable requirement identifiers
 - functional and non-functional requirements
-- constraints and assumptions
-- design decisions and alternatives
+- constraints, assumptions, dependencies, and exclusions
 - exact interfaces and contracts
-- edge cases and risks
-- out of scope
-- open questions
+- data ownership, schemas, lifecycle, migration, and compatibility
+- errors, edge cases, partial failure, retries, timeouts, and recovery
+- observability and operational behavior
+- acceptance criteria and required verification
+- material unresolved questions
 
-`design.md` should capture:
-- architecture overview and component boundaries
-- repository/module structure
-- data model
-- infrastructure design and outputs
-- Security Considerations
-- tradeoffs and alternatives
-- open design questions
+Exact interfaces include signatures, request/response payloads, events,
+schemas, error forms, environment variables, resource outputs, names, ports,
+paths, protocols, and version expectations. Define shared contracts before
+dependent tasks.
 
-`decisions.md` is append-only. Use it for mid-flight ambiguity, accepted deviations, security exceptions, degraded workflows, or user-approved open gates.
+## Design
 
-## Task Format
+Create `design.md` when component boundaries, repository structure, data flow,
+infrastructure, migration, or tradeoffs matter. Include:
 
-Tasks are organized into parallel waves. Tasks in one wave can run simultaneously; waves run sequentially only when a real dependency forces a barrier.
+- context and selected architecture
+- components and ownership
+- sequence/data flow
+- repository/module/file placement
+- storage and consistency
+- external integrations
+- deployment and environment model
+- observability and failure handling
+- alternatives considered and why rejected
+- rollout, rollback, and reversibility
+- open design decisions
 
-Use this shape:
+For AWS or production-impacting work, include `## Security Considerations` with
+identity, trust boundaries, secrets, encryption/KMS, network exposure,
+classified data, logging/retention, state backend, backups, threat/abuse cases,
+and evidence needed for closure.
 
-```md
-## Wave 1: shared contracts
-Spec ref: `spec.md#interfaces-and-contracts`
-- [ ] [coding] Define API contracts | `src/api/types.ts` | Exports request/response types exactly as specified. Run: `npm test -- api-types`
-- [ ] [devops] Define environment contract | `.github/workflows/ci.yml`, `docs/deploy.md` | CI and deploy docs agree on required env vars. Run: `npm run lint`
-```
+Engage `sa-agent` for IAM, KMS/encryption, network exposure, security groups,
+EKS access, stateful resources, classified storage, logging/retention, or
+Terraform/CloudFormation state backends.
 
-Task rules:
-- Use `[coding]`, `[devops]`, or `[sa]` role tags.
-- Include exact file paths.
-- Include acceptance criteria.
-- Include `Run: <command>` for verification.
-- No two tasks in the same wave may write the same file.
-- Keep each task self-contained and role-pure.
-- Include interface contracts inline when producing or consuming shared interfaces.
-- Use `[skip-verify]` only when no meaningful verification exists.
-- Start a new wave only for real dependencies, not convenience.
-
-## Parallelization
-
-Author for a worker pool, not one worker:
-- Make waves wide. Many small file-disjoint tasks beat one broad task.
-- Make waves few. Pull independent work forward.
-- Front-load shared contracts so consumers can run in parallel.
-- Keep `[coding]` and `[devops]` scopes file-disjoint so both pools can run at once.
-- Use worktrees only when overlap cannot be decomposed safely.
-- Under-provision before over-provisioning. If the independent file-disjoint width is 1, spawn 1. Extra agents add stale handoffs, double-work, and same-file race risk.
-
-Pool caps:
-- `coding-agent`: up to 6 instances
-- `devops-agent`: up to 2 instances
-- `review-agent`: up to 4 instances
-- `sa-agent`: 1 instance; mandatory for AWS IAM, KMS/encryption, security groups, network exposure, EKS access, stateful resources, or Terraform/CloudFormation state backends
-
-These are ceilings, not quotas. Spawn only enough agents for independent work.
-
-## Delegation Model In Codex
-
-Codex does not provide Claude-style `TeamCreate`, `TaskCreate`, `TaskUpdate`, `SendMessage`, or a shared task queue in this workflow. Coordination is explicit:
-
-- The lead writes specs and tasks.
-- The lead spawns role agents with narrow file scopes and concrete prompts.
-- Each agent returns a concise summary, changed files, verification result, blockers, and residual risks.
-- The lead consolidates outcomes into `tasks.md`, `decisions.md`, review artifacts, and the user-facing thread.
-
-Each subagent prompt must include:
-- role agent
-- instance name
-- spec path
-- wave/task reference
-- exact file scope
-- acceptance criteria
-- `Run:` command or verification expectation
-- output expected
-- instruction not to edit outside scope
-- note that peers may be working concurrently
-- whether to wait for all agents before consolidation
-
-## Review Loop
-
-Plan -> Build wave -> Review -> Fix if FAIL -> Documentation -> Cleanup.
-
-For small cohesive changes, use one `review-agent` as synthesizer.
-
-For broad changes, use parallel review:
-- `review-1` is synthesizer and sole author of `review.md`.
-- `review-2` through `review-4` are analysts.
-- Analysts review disjoint slices and return structured findings; they write no review file.
-- The synthesizer reviews cross-module consistency, deduplicates findings, writes `review.md`, and emits one PASS/FAIL verdict.
-
-FAIL if any Critical or Warning remains, or required verification is absent. Suggestions do not block PASS.
-
-Run at most three review cycles per wave before escalating with a concise summary of persistent issues.
-
-## Coordination Under Unreliable Signals
-
-- Ground truth is disk: `tasks.md`, review artifacts, `sa-review.md`, `decisions.md`, verification output, `git diff`, and the current files.
-- Subagent silence, delayed summaries, or stale handoff text are not proof of failure. Investigate artifacts before recovery.
-- Do not take over a quiet teammate's work unless there is positive evidence of failure. Prefer respawning a fresh scoped agent over lead-thread implementation.
-- Never cross a deploy, apply, destroy, billable, or destructive gate because a teammate went quiet. Escalate with an impact statement.
-- If a review synthesizer is unrecoverable, respawn a reviewer. Do not self-author `review.md`.
-
-## Security And AWS Acceptance
-
-For AWS or production-impacting work, acceptance criteria should include applicable checks in priority order:
-
-1. Encryption at rest verified.
-2. Encryption in transit verified.
-3. Access logging enabled.
-4. Data classification tags present.
-5. IAM least privilege checked.
-6. Secrets stored in Secrets Manager, Parameter Store, or an approved project mechanism.
+## Task Contract
 
 Use:
-- `aws-security-guidelines` for security requirements.
-- AWS Core/Data Analytics skills for service-specific workflow guidance.
-- `aws-mcp` for current AWS facts and read-only checks.
-- AWS IaC MCP server for CloudFormation/CDK validation, compliance, docs, and troubleshooting.
 
-Security scan artifacts, when used, should live under `.codex/specs/<slug>/`. Accepted risks with compensating controls belong in `security-exceptions.md` or `decisions.md`.
+```md
+## Wave 1: <outcome>
+Spec refs: `spec.md#interfaces`, `requirements.md#FR-1`
 
-## Live Validation For Delivery Surfaces
+- [ ] [coding] Implement order validation | `src/orders/validate.ts`, `src/orders/validate.test.ts` | Match `OrderInput` and error contracts; cover empty and duplicate IDs. Run: `npm test -- orders/validate`
+- [ ] [devops] Add order table outputs | `infra/orders.tf`, `docs/config.md` | Export `orders_table_name`; KMS, PITR, tags, and docs match design. Run: `terraform -chdir=infra validate`
+```
 
-Static checks are necessary but not sufficient for IaC, deploy scripts, CI/CD, and shell tooling. `terraform validate`, `cfn-lint`, `shellcheck`, `bash -n`, workflow lint, and unit tests cannot prove runtime target selection, cloud semantics, teardown, or smoke-test correctness.
+Every task must contain:
 
-For those surfaces, require deploy/smoke/teardown or the closest safe executable equivalent before recording the wave as done. If the environment cannot run it, mark the affected acceptance criteria as static-validated only, record the open live-validation gate in `decisions.md`, and escalate rather than implying PASS.
+- task status marker
+- role: `[coding]`, `[devops]`, or `[sa]`
+- action and user/system outcome
+- exact writable files and no-edit boundary
+- acceptance criteria linked to the spec
+- produced and consumed interfaces
+- dependencies
+- `Run: <command>` or a precise evidence query
+- expected completion handoff
 
-## Completion Criteria
+Use `[skip-verify]` only when no meaningful executable check exists. Analysis
+tasks should still name the artifact and evidence they produce.
 
-A wave is complete only when:
-- all planned tasks are marked `[x]` in `tasks.md`
-- verification commands are recorded
-- review reports PASS
-- required live-validation gates are passed or explicitly recorded as open
-- docs affected by behavior/config/API/operations are updated
-- blockers and deviations are recorded in `decisions.md`
+Task status semantics:
 
-The whole task is complete only after final documentation close-out and a concise user-facing summary.
+- `[ ]`: ready or waiting on an explicit dependency
+- `[-]`: in progress, with owner noted
+- `[x]`: completed with exact verification evidence
+- `[!]`: blocked, with cause, attempts, owner, and needed decision
+
+Do not mark `[x]` from a worker's claim alone. Reconcile returned results,
+current files, and fresh command output. Preserve failure evidence in the task
+note.
+
+## Wave Construction
+
+Build the fewest waves with the widest safe file-disjoint work:
+
+- Put tasks with no unmet dependency in the same wave.
+- Front-load shared interface contracts so consumers can fan out.
+- Split broad tasks by module, endpoint, package, stack, workflow, or doc when
+  each slice is independently testable.
+- Run coding and DevOps work together when their files and contracts are
+  independent.
+- No two parallel tasks may write the same file.
+- Serialize overlapping writers or name one explicit merge owner.
+- Add a new wave only for a real data, contract, generation, or ordering
+  dependency.
+
+Pool caps are ceilings, not a reason to invent tasks. Use
+`team-coordination` to size the pool to file-disjoint width and write exact
+handoffs.
+
+## Decisions And Blockers
+
+`decisions.md` is append-only. Record:
+
+- date and decision
+- context and alternatives
+- owner/approver
+- affected requirements, interfaces, tasks, and docs
+- consequences and reversibility
+- validation or follow-up
+
+Record blockers with the exact command/error, attempts, affected task, and
+smallest needed decision. Do not hide a blocker by changing acceptance
+criteria. If a blocker forces degraded single-threaded work, open review, or
+missing live validation, obtain the required user approval and preserve the
+lost assurance.
+
+## Security And Verification
+
+Task acceptance must cover applicable controls:
+
+- IAM least privilege and trust
+- encryption at rest and in transit
+- KMS claims matching configuration
+- secret handling
+- network exposure and scoped egress
+- logging, retention, metrics, alarms, and auditability
+- backups/recovery and deletion protection
+- state backend encryption/locking/recovery
+- data-classification tags and classified-storage controls
+
+Use `aws-security-guidelines`, relevant AWS skills, AWS IaC MCP validation, and
+configured read-only AWS tools. Store scan/evidence artifacts under the spec
+directory when the repository requires them. Accepted risks require owner,
+reason, compensating control, expiration/revisit, and reversibility.
+
+Each task runs focused verification and applicable CI-blocking checks. Verify
+the verifier: the command must exercise the claimed behavior with pinned
+repository tooling.
+
+## Live-Validation Gate
+
+Static checks are necessary but not sufficient for IaC, deploy scripts, CI/CD,
+containers with delivery behavior, or shell tooling. Lint, validate, synth,
+plan, and unit tests cannot prove target selection, cloud semantics, config
+precedence, real exit status, smoke target, or teardown residue.
+
+Require deploy/smoke/teardown or the closest safe executable equivalent when
+approved and available. If it cannot run:
+
+- mark affected criteria static-validated only
+- identify the exact unproven behavior
+- record the open live-validation gate in `decisions.md` and `review.md`
+- do not imply runtime PASS
+
+## Review And Fix Flow
+
+After implementation evidence is consolidated:
+
+1. Count every prior review synthesizer spawn for the entire team run.
+2. Record the next cycle before spawning review.
+3. Use `team-review-cycle` with exactly one synthesizer and optional
+   file-disjoint analysts.
+4. Wait for requested analyst evidence and the synthesizer verdict.
+5. On cycle 1 or 2 FAIL, convert unresolved Critical/Warning findings into one
+   scoped, file-disjoint fix wave.
+6. Re-run affected and regression verification, then consume the next review
+   cycle.
+7. Cycle 3 is terminal. On non-PASS, stop automatic fixes/reviews, close active
+   agents, preserve evidence, and report blocked.
+
+One maximum three-cycle budget applies to the whole run. It does not reset for
+a new wave, fix, reviewer, review file, retry, interruption, or resumed
+session. A cycle is consumed when its synthesizer is spawned.
+
+## Documentation
+
+After independent PASS, use `team-documentation` to reconcile affected README,
+API, configuration, deployment, rollback, runbook, architecture, and usage
+surfaces. Task-local docs may be updated during implementation; final
+reconciliation checks cross-task consistency and current names.
+
+## Whole-Run Completion
+
+Complete only when:
+
+- requirements and interfaces are satisfied
+- all required task status entries are `[x]`
+- exact verification and CI evidence is recorded
+- one independent synthesizer reports PASS within the three-cycle budget
+- required live-validation gates are closed
+- blockers, decisions, deviations, and accepted risks are durable
+- affected documentation is accurate
+- all requested worker results are harvested
+- agents no longer needed are closed
+- no required worker remains active
+- no billable or temporary verification resource lacks an explicit handoff
+
+If cycle 3 ends without PASS, completion is blocked rather than partial
+success. Preserve the same artifact set so the user can decide the next action.

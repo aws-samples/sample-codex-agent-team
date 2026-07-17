@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "Codex Agent Team",
     "shortDescription": "Spec-driven hybrid Codex team workflow",
-    "longDescription": "A Codex workflow bundle that provides shared team skills, prompt shortcuts, and implementation patterns for planning, parallel implementation, documentation, and review loops. Pair it with the repo's .codex/agents custom agents for the full lead/member team.",
+    "longDescription": "A Codex workflow bundle with GPT-5.6-oriented team skills, prompt shortcuts, and bounded review loops that pairs with the repo's role-specific custom agents.",
     "developerName": "Rubab Khan",
     "category": "Developer Tools",
     "capabilities": [

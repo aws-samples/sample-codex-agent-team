@@ -1,5 +1,7 @@
 interface:
   display_name: "Git Workflow"
-  short_description: "Conventional commits, branch names, non-interactive git, and PR hygiene."
+  short_description: "Non-interactive Git branches, commits, and PRs"
+  default_prompt: "Use $git-workflow to perform this Git task safely and non-interactively."
+
 policy:
   allow_implicit_invocation: true

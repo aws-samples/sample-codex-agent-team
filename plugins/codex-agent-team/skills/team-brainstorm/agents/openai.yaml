@@ -1,3 +1,4 @@
 interface:
   display_name: "Team Brainstorm"
-  short_description: "Turn an idea into `.codex/specs` requirements"
+  short_description: "Turn rough ideas into team-ready requirements"
+  default_prompt: "Use $team-brainstorm to turn this rough idea into approved requirements for a Codex team workflow."

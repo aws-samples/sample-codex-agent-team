@@ -3,14 +3,28 @@
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import sys
 from datetime import datetime, timezone
 
 
-LOG_DIR = os.path.expanduser("~/.codex/team-logs")
+def codex_home() -> str:
+    configured = os.environ.get("CODEX_HOME")
+    if configured:
+        return os.path.abspath(os.path.expanduser(configured))
+
+    home = os.environ.get("HOME")
+    if home:
+        return os.path.join(os.path.abspath(os.path.expanduser(home)), ".codex")
+
+    return os.path.expanduser("~/.codex")
+
+
+LOG_DIR = os.path.join(codex_home(), "team-logs")
 LOG_PATH = os.path.join(LOG_DIR, "subagent-events.jsonl")
+LOCK_PATH = f"{LOG_PATH}.lock"
 MAX_LOG_BYTES = 1_048_576
 BACKUP_COUNT = 3
 ALLOWED_PAYLOAD_KEYS = {
@@ -28,7 +42,7 @@ ALLOWED_PAYLOAD_KEYS = {
 
 
 def now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def rotate_log(path: str) -> None:
@@ -48,7 +62,9 @@ def rotate_log(path: str) -> None:
         pass
 
 
-def filtered_payload(payload: dict) -> dict:
+def filtered_payload(payload: object) -> dict:
+    if not isinstance(payload, dict):
+        return {}
     return {
         key: value
         for key, value in payload.items()
@@ -65,7 +81,6 @@ def main() -> int:
     except Exception:
         payload = {}
 
-    os.makedirs(LOG_DIR, exist_ok=True)
     record = {
         "captured_at": now(),
         "event": event_name,
@@ -73,9 +88,12 @@ def main() -> int:
         "payload": filtered_payload(payload),
     }
     try:
-        rotate_log(LOG_PATH)
-        with open(LOG_PATH, "a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record) + "\n")
+        os.makedirs(LOG_DIR, exist_ok=True)
+        with open(LOCK_PATH, "a", encoding="utf-8") as lock_handle:
+            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+            rotate_log(LOG_PATH)
+            with open(LOG_PATH, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record) + "\n")
     except Exception:
         pass
     return 0

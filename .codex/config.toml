@@ -1,3 +1,6 @@
+model = "openai.gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+
 [agents]
 max_threads = 14
 max_depth = 2

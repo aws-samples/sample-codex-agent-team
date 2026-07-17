@@ -10,15 +10,26 @@ Jump to [Quick Start](#quick-start).
 
 ![Architecture Diagram](docs/architecture-diagram.png)
 
-The sample is built around a main-thread coordinator, five optional role agents, and one test execution utility agent:
+The sample is built around a main-thread coordinator and five optional role agents:
 
-| Agent | Role | Reasoning Effort | Primary Use |
-| --- | --- | --- | --- |
-| `fullstack-agent` | Lead coordinator | xhigh | Specs, work splitting, delegation, spawn-plan generation, and review-loop consolidation |
-| `coding-agent` | Implementation engineer | xhigh | Scoped production code, tests, refactors, and fixes |
-| `devops-agent` | Infrastructure and delivery specialist | high | CI/CD, containers, IaC, environment wiring, and runbooks |
-| `review-agent` | Independent reviewer | xhigh | PASS/FAIL review for bugs, regressions, security, and missing verification |
-| `sa-agent` | AWS Solutions Architect teammate | xhigh | Architecture, reliability, cost, security, and operational design |
+| Agent | Role | Model | Reasoning Effort | Primary Use |
+| --- | --- | --- | --- | --- |
+| `fullstack-agent` | Lead coordinator | `openai.gpt-5.6-sol` | xhigh | Specs, work splitting, delegation, spawn-plan generation, and review consolidation |
+| `coding-agent` | Implementation engineer | `openai.gpt-5.6-terra` | max | Scoped production code, tests, refactors, and fixes |
+| `devops-agent` | Infrastructure and delivery specialist | `openai.gpt-5.6-terra` | high | CI/CD, containers, IaC, environment wiring, and runbooks |
+| `review-agent` | Independent reviewer | `openai.gpt-5.6-sol` | max | PASS/FAIL review for bugs, regressions, security, and missing verification |
+| `sa-agent` | AWS Solutions Architect teammate | `openai.gpt-5.6-terra` | max | Architecture, reliability, cost, security, and operational design |
+
+These explicit IDs preserve the approved setup. The public repo intentionally
+does not copy the private `model_provider`, credentials, region, profile, or
+project-trust configuration; adopters must configure a provider that exposes
+these model IDs. `.codex/config.toml` also defaults the main thread to
+`openai.gpt-5.6-sol` at `xhigh`.
+
+The public repository intentionally excludes `test-suite-runner`; use each
+project's native test commands or add a local report-only role when that
+specialization is needed. This keeps the published team focused on planning,
+implementation, delivery, architecture, and independent review.
 
 The reusable workflow lives in the `codex-agent-team` plugin under `plugins/codex-agent-team`. The custom agents live in `.codex/agents` because Codex custom agents are project or user configuration files rather than ordinary plugin contents. The sample also includes AWS security review guidance, concurrent external-fetch guidance, git workflow guidance, AWS Core/AWS Data Analytics/Superpowers plugin routing, and project-scoped MCP entries for AWS IaC help, Context7, and DeepWiki.
 
@@ -30,7 +41,7 @@ The workflow has three practical rules:
 
 1. Put durable planning artifacts in `.codex/specs/<slug>/`.
 2. Split parallel work by files or ownership boundaries.
-3. Treat review as a separate gate. A fix wave is not complete until an independent review reports PASS.
+3. Treat review as a separate gate with one non-resetting three-cycle budget for the entire run.
 
 This sample does not provide a shared task database. Coordination happens through explicit prompts, repo-local spec files, and main-thread consolidation.
 
@@ -47,7 +58,9 @@ The installed team can run multiple instances of the same role when the work is 
 
 These are ceilings, not quotas. Use fewer agents when there are fewer independent scopes, and serialize any work that must touch the same files. Codex does not provide Claude-style shared task tools in this workflow, so the coordinator assigns each spawned instance an explicit name, file scope, expected output, and verification command.
 
-The max-pool shape has been smoke-tested with six coding agents, two devops agents, four review agents, one SA agent, and a final lead consolidation pass. See [agent-pool-smoke-test.md](docs/agent-pool-smoke-test.md) for the result and operational notes.
+The earlier disposable smoke project has been removed. The current GPT-5.6
+matrix, global review budget, and hook locking must be validated in the
+adopter's own sandbox before production use.
 
 ## How The Workflow Runs
 
@@ -59,12 +72,12 @@ For non-trivial work, the flow is:
 4. Spawn role agents only for slices that can proceed independently.
 5. Give each spawned agent an explicit prompt with its role, spec path, file scope, expected output, and verification command.
 6. Wait for all requested agents, then consolidate their results in the main thread or `fullstack-agent`.
-7. Run a dedicated `review-agent` pass.
-8. Convert any FAIL verdict into a fix wave, then review again.
+7. Run a dedicated `review-agent` pass and consume the next whole-run cycle when its synthesizer is spawned.
+8. A FAIL in cycle 1 or 2 may create a scoped fix wave. Cycle 3 is terminal; preserve evidence and report BLOCKED rather than spawning cycle 4.
 
 Specs created during real work are ignored by `.gitignore`; they are runtime project artifacts, not part of this reusable sample.
 
-## When To Use Each Agent
+## When To Use Each Agent or Skill
 
 | Situation | Agent or Skill | Notes |
 | --- | --- | --- |
@@ -74,7 +87,6 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
 | Updating CI/CD, IaC, deployment config, or runbooks | `devops-agent` | Prefer plan, synth, diff, lint, dry-run, or non-mutating validation. |
 | Reviewing a change | `review-agent` | Must lead with findings and return PASS or FAIL. |
 | Evaluating architecture, reliability, cost, or operations | `sa-agent` | Useful before large build waves or production-impacting design choices. |
-| Running tests without fixing code | `test-suite-runner` | Use when you need command discovery and a concise PASS/FAIL report. |
 | Reviewing AWS resource security | `aws-security-guidelines` | Use for AWS IaC, deployment handoffs, data security controls, and production readiness. |
 | Implementing many independent external calls | `concurrent-cached-fetch` | Adds bounded concurrency and content-keyed disk caching guidance. |
 | Preparing branches, commits, or PR handoffs | `git-workflow` | Keeps git usage non-interactive and aligned with Conventional Commits. |
@@ -82,7 +94,8 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
 ## Prerequisites
 
 - Codex installed and authenticated.
-- Python 3.8+ on `PATH`; hooks use only the Python standard library.
+- Python 3.11+ on `PATH` for the complete validation suite. The hooks themselves
+  use only the Python standard library and remain compatible with Python 3.8+.
 - A git repository root. Hook commands resolve repo-local paths with `git rev-parse --show-toplevel`.
 - A trusted Codex project. Project `.codex` config, agents, hooks, and rules load only after you trust the project.
 - For the AWS-optimized path, install and enable `aws-core@agent-toolkit-for-aws`, `aws-data-analytics@agent-toolkit-for-aws`, and `superpowers@openai-curated`. The sample `.codex/config.toml` reflects those enabled plugins.
@@ -209,10 +222,10 @@ Scope the audit to one area:
 |   |-- .codex-plugin/plugin.json        # Plugin manifest
 |   |-- commands/                        # Prompt shortcuts
 |   `-- skills/                          # Team workflow skills
-|-- docs/agent-pool-smoke-test.md        # Max-pool smoke-test result and lessons
 |-- docs/design.md                       # Architecture and design notes for this sample
 |-- docs/specs/templates/                # Starting templates for .codex/specs work
 |-- scripts/install_personal_plugin.py   # Optional personal-marketplace installer
+|-- scripts/test_prompt_invariants.py    # Five-agent prompt and matrix regressions
 `-- SECURITY.md                          # Threat model and user responsibilities
 ```
 
@@ -220,16 +233,37 @@ Scope the audit to one area:
 
 ### Agents
 
-Agents are `.toml` files in `.codex/agents`. Each file defines a `name`, `description`, `model_reasoning_effort`, optional nickname candidates, and detailed developer instructions. The descriptions are important because they tell Codex when a role is appropriate.
+Agents are `.toml` files in `.codex/agents`. Each file defines a `name`,
+`description`, explicit `model`, `model_reasoning_effort`, optional nickname
+candidates, and detailed GPT-5.6-oriented developer instructions. The
+descriptions tell Codex when a role is appropriate; the full prompts preserve
+role ownership, approval boundaries, learned failure modes, required evidence,
+output contracts, and stop conditions.
 
 The prompts intentionally constrain agents to their assigned scope:
 
-- `fullstack-agent` coordinates and delegates; it should not default to large implementation work itself.
-- `coding-agent` may run as `coding-1` through `coding-6`; each instance edits only its delegated files and reports when scope must expand.
-- `devops-agent` may run as `devops-1` or `devops-2`; each instance prefers non-mutating validation and calls out deploy risk.
-- `review-agent` may run as up to four reviewers; each instance reviews only its delegated scope, leads with findings, and returns PASS or FAIL.
-- `sa-agent` gives design guidance and tradeoffs rather than routine code review.
-- `test-suite-runner` discovers and runs test commands, then reports PASS, FAIL, BLOCKED, or NO TESTS FOUND without fixing code.
+- `fullstack-agent` owns requirements, contracts, file-disjoint waves, worker
+  liveness, consolidation, closure, and the whole-run three-cycle review budget;
+  it returns a Spawn Plan when nested delegation is unavailable.
+- `coding-agent` may run as `coding-1` through `coding-6`; each instance follows
+  exact-file ownership, TDD/debugging routes, interface contracts, CI-blocking
+  verification, and task-local documentation close-out.
+- `devops-agent` may run as `devops-1` or `devops-2`; each instance checks
+  caller-input precedence, pipeline status, parsed-output isolation,
+  authoritative state backends, teardown residue, rollback, and open live
+  validation.
+- `review-agent` may run as one synthesizer plus up to three analysts; analysts
+  return evidence-backed slice findings, while only the synthesizer owns
+  `review.md` and the PASS/FAIL verdict.
+- `sa-agent` covers all six Well-Architected pillars and produces concrete
+  current-source, ownership, rollout, rollback, cost, and residual-risk
+  handoffs rather than generic advice.
+
+Prompt optimization in this repository is behavior-preserving, not a line-count
+minimization exercise. Shorter text is not considered an improvement when it
+removes a measured safeguard, role contract, verification requirement, or stop
+condition. Reusable procedure stays in progressively loaded skills so detailed
+role prompts remain focused on role-specific failure prevention.
 
 ### Plugin
 
@@ -246,11 +280,12 @@ Skills are reusable instructions that the main thread or agents load on demand.
 | `team-brainstorm` | Convert a rough idea into `.codex/specs/<slug>/requirements.md`. |
 | `team-spec-workflow` | Drive spec artifacts, task waves, delegation, and review loops. |
 | `team-coordination` | Write explicit subagent prompts with file boundaries and verification expectations. |
-| `team-review-cycle` | Use scoped review files and PASS/FAIL verdicts. |
+| `team-review-cycle` | Maintain one synthesizer-owned review history and a global three-cycle PASS/FAIL gate. |
 | `team-documentation` | Keep README, runbook, architecture, API, and spec docs aligned. |
 | `aws-security-guidelines` | Review AWS services for encryption, TLS, logging, tagging, IAM, and production data controls. |
 | `concurrent-cached-fetch` | Add bounded concurrency and disk caching for independent external fan-out calls. |
 | `git-workflow` | Use non-interactive git commands, Conventional Commits, branch naming, pre-push checks, and conflict handling. |
+| `optimize-my-codex` | Audit active Codex configuration, preserve provider choices, and automatically apply an approved GPT-5.6 migration. |
 
 The AWS security guidance strengthens AWS-facing planning and review by making data controls explicit: KMS encryption, TLS enforcement, S3 Block Public Access, access logging, data-classification tags, least-privilege IAM, production-readiness checks, and `.codex/specs/<slug>/` security evidence for durable review notes.
 
@@ -292,7 +327,7 @@ Use `/optimize-my-codex` after Codex updates, model changes, plugin changes, or 
 /optimize-my-codex rules
 ```
 
-The command must present findings first, grouped by impact, and wait for approval before editing any Codex setup files. When edits are approved, it makes minimal changes and validates changed JSON, TOML, or YAML where applicable.
+The command presents findings and one exact migration set first, then waits for approval. Once approved, it applies the complete migration automatically without per-file confirmation and validates changed JSON, TOML, YAML, skills, plugins, hooks, and model assignments as applicable.
 
 ### Specs
 
@@ -306,8 +341,7 @@ Common artifacts:
 | `spec.md` | Requirements, assumptions, interfaces, risks, and out-of-scope boundaries. |
 | `design.md` | Architecture, components, data model, infrastructure, and tradeoffs. |
 | `tasks.md` | File-disjoint waves with clear acceptance and verification. |
-| `review.md` or `review-<scope>.md` | Independent findings and PASS/FAIL verdicts. |
-| `review-summary.md` | Lead consolidation when review is split across scopes. |
+| `review.md` | Synthesizer-owned review history, one whole-run cycle counter, and the authoritative PASS/FAIL verdict. |
 | `sa-review.md` | Architecture and Well-Architected style findings. |
 | `decisions.md` | Durable decision log. |
 | `prd.md` | Product requirements and rollout notes when product framing is needed. |
@@ -327,8 +361,9 @@ The hooks are intentionally lightweight:
 - They use only Python standard-library modules.
 - They fail open so logging problems do not trap Codex.
 - They filter incoming payloads to an allowlist.
-- They write JSONL logs under `~/.codex/team-logs`.
+- Session events write under `~/.codex/team-logs`; subagent lifecycle events honor `$CODEX_HOME/team-logs` and otherwise use `~/.codex/team-logs`.
 - They rotate each log at 1 MiB with three backups.
+- Subagent lifecycle writes and rotation are serialized with a file lock so parallel start/stop events do not race.
 
 Review and trust hooks with `/hooks` before relying on them. Disable them in stricter environments if local metadata logging is not acceptable.
 
@@ -407,7 +442,7 @@ Use this sample with normal production safeguards:
 
 ## Troubleshooting
 
-If a subagent fails before doing work with an engine routing error such as `404 Not Found: Engine not found`, close that failed agent and retry the same bounded scope. If retries keep failing for the inherited model, retry with a supported explicit model override and record the operational note in the relevant spec or review artifact.
+If a subagent fails before doing work with an engine routing error such as `404 Not Found: Engine not found`, close that failed agent and retry the same bounded scope. If retries keep failing, use a currently supported role-appropriate model only after confirming availability, and record the override in the relevant spec or review artifact.
 
 ## Customization
 
@@ -430,6 +465,8 @@ When adding a new role agent, update:
 Useful checks after editing:
 
 ```bash
+python3 scripts/test_prompt_invariants.py -v
+python3 .codex/hooks/test_subagent_lifecycle.py -v
 python3 -m py_compile .codex/hooks/session_start.py .codex/hooks/subagent_lifecycle.py
 python3 -m json.tool .codex/hooks.json
 python3 -m json.tool .agents/plugins/marketplace.json
@@ -438,6 +475,12 @@ python3 scripts/install_personal_plugin.py --dry-run
 python3 -c "import pathlib, tomllib; files=[pathlib.Path('.codex/config.toml'), *pathlib.Path('.codex/agents').glob('*.toml')]; [tomllib.loads(p.read_text()) for p in files]"
 ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f) }; puts "yaml ok"' plugins/codex-agent-team/skills/*/agents/openai.yaml
 ```
+
+The prompt invariant suite asserts the five-agent public model/effort matrix,
+confirms that `test-suite-runner` remains absent, and protects the lifecycle,
+review, role, skill, command, and README contracts restored for GPT-5.6. The
+hook regression covers malformed payloads, allowlist filtering, fail-open
+behavior, and race-safe rotation through the persistent sidecar lock.
 
 For plugin manifest validation, use Codex's bundled `plugin-creator` validator if available:
 

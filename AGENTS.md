@@ -1,51 +1,144 @@
-# Codex Team Defaults
+# Codex Defaults
 
-## Working Agreements
+## Authorization And Approval
 
-- Use repo-local `.codex/specs/<slug>/` for non-trivial specs, task plans, review files, SA reviews, decision logs, and security exceptions when a team workflow is in play.
-- Treat the main thread as the top-level team lead by default. Use `fullstack-agent` only when the user explicitly asks for a lead profile or spawn-plan generation.
-- When a team workflow is in play, the lead coordinates and delegates. It may research, write specs, write tasks, update decisions, and consolidate outcomes, but it should not implement non-trivial production code, tests, IaC, or deployment changes itself.
-- Prefer wide, file-disjoint task waves. No two parallel tasks may write the same file. If overlap is unavoidable, serialize that slice or document an explicit merge step.
-- Under-provision before over-provisioning. A pool wider than the actual file-disjoint task width creates coordination churn, stale handoffs, and same-file races; spawn only when there is independent work to keep the agent busy.
-- Treat review as a separate adversarial gate. A wave is not done until the assigned `review-agent` pass reports PASS. A self-review is a TODO marker, not a verdict.
+- For requests to answer, explain, review, diagnose, or plan, inspect the
+  relevant materials and report the result. Do not implement changes unless the
+  request asks for them.
+- For requests to change, build, fix, migrate, or configure, make the requested
+  in-scope local edits and run relevant non-destructive validation without
+  asking again for each file.
+- Safe local reads, edits, tests, builds, linting, formatting, and read-only
+  inspection are authorized when they are necessary to complete an approved
+  task.
+- Require confirmation for external writes, destructive or difficult-to-reverse
+  actions, purchases, deployment or live-resource mutation, secret access,
+  production-data access, and material scope expansion. Explain the concrete
+  impact before requesting approval.
+- User approval applies to the described scope, not to adjacent cleanup or an
+  inferred broader redesign. Surface newly discovered expansion separately.
 
-## Team Protocol
+## Working Method
 
-- Task artifacts use this shape: `- [ ] [coding|devops|sa] <verb> <what> | <file paths> | <acceptance criteria>. Run: <command>`.
-- Every task needs exact files, acceptance criteria, and a concrete verification command. Use `[skip-verify]` only for genuinely non-runnable coordination or analysis work.
-- The lead should spawn role agents only when the user asks for parallel delegation, role specialization, a lead/member workflow, or team-style work.
-- Spawn pools to match the widest independent wave, capped at 6 `coding-agent`, 2 `devops-agent`, 4 `review-agent`, and 1 `sa-agent`.
-- Use `sa-agent` for AWS work touching IAM, KMS/encryption, security groups, network exposure, EKS access, stateful resources, or Terraform/CloudFormation state backends. If the lead consciously skips SA review for one of those surfaces, record the reason in `decisions.md`.
-- Every spawned prompt must include instance name, role, spec path, task or wave reference, exact file scope, expected output, verification command, and an instruction not to edit outside scope.
-- Review waves use one synthesizer reviewer when multiple reviewers are active. The synthesizer owns `review.md`; analyst reviewers send structured findings and write no review file.
-- Record blockers in `tasks.md` and `decisions.md`. If the same blocker persists after two attempts, escalate to the user instead of silently degrading the workflow.
-- Ground truth is disk artifacts first: `tasks.md`, `review.md`, `sa-review.md`, `decisions.md`, verification outputs, `git diff`, and current files. Messages, stale summaries, and subagent silence are not authoritative.
-- Do not infer a teammate is dead from silence. For a quiet subagent, inspect artifacts and wait for its result; if recovery is genuinely needed, respawn or reassign with explicit scope rather than taking over broad work in the lead thread.
+- Read repository guidance and existing patterns before editing. Keep changes
+  scoped and preserve user or peer work; never revert unrelated changes.
+- Re-read a target immediately before changing it when work has been
+  interrupted or another actor may have edited nearby files.
+- Run commands non-interactively and without pagers. Provide input through
+  arguments, environment variables, or files; do not depend on an editor,
+  confirmation prompt, stdin, or an attached TTY.
+- Use project-local dependency isolation and the repository's existing package
+  manager, wrappers, lock files, and toolchain pins. Do not install project
+  dependencies globally or introduce a second package manager casually.
+- Parallelize independent reads. Parallelize writes only when file ownership is
+  disjoint and the user requested delegation or team-style work.
+- Use applicable skills for specialized workflows. For bulk independent
+  external calls, use `concurrent-cached-fetch` before implementing the loop.
+- Keep comments and abstractions proportional to the code. Avoid unrelated
+  refactors, broad formatting churn, generated metadata changes, or speculative
+  features.
 
-## Execution Hygiene
+## Source Of Truth
 
-- Run commands non-interactively. Disable pagers with `--no-pager`, `--no-cli-pager`, or `GIT_PAGER=cat`; pass confirmation-suppression flags such as `--yes`, `--no-input`, or `-y` where appropriate.
-- Do not rely on a command prompting for stdin, opening an editor, or attaching to a TTY. Provide required inputs through arguments, environment variables, or files.
-- Use project-local dependency isolation. Do not install project dependencies globally; prefer existing `.venv`, local `node_modules`, package-manager lock files, committed wrappers, and language toolchain pins.
-- Preserve lock files and isolation directories according to the repository convention. Do not introduce a new package manager or dependency workflow unless the task requires it.
-- If code performs bulk independent external calls, use `concurrent-cached-fetch` before writing the loop. Bounded concurrency and a content-keyed disk cache are the default.
+- Current files and diffs are authoritative for implementation state.
+- Durable artifacts under `.codex/specs/<slug>/` are authoritative for agreed
+  requirements, task ownership, decisions, blockers, review history, and open
+  gates.
+- Fresh command output is authoritative for verification claims. Check exit
+  codes and parsed summaries rather than inferring success from quiet output.
+- Returned agent results and messages are evidence, but stale summaries,
+  delayed messages, or silence do not override current disk state.
+- When sources disagree, re-read the relevant file, artifact, and verification
+  output before acting. Record the discrepancy instead of choosing the most
+  convenient account.
 
-## Plugin Routing
+## Team Activation And Ownership
 
-- For AWS work, prefer AWS Core plugin skills for service, SDK, IaC, IAM, observability, Bedrock, serverless, containers, messaging, streaming, secrets, and cost tasks.
-- Use AWS Data Analytics plugin skills for Glue, Athena, S3 Tables, S3 Vectors, OpenSearch, data lake, ETL, catalog, vector, search, and analytics workflows.
-- For CloudFormation/CDK validation, compliance checks, deployment troubleshooting, and CDK reference lookups, use the configured AWS IaC MCP server.
-- For current AWS service facts, prefer `aws-mcp` from the AWS plugins. Use only configured plugin-backed AWS MCP surfaces; do not add legacy standalone AWS MCP endpoints.
-- Use Context7 for current library/framework documentation when relevant.
-- Use Superpowers skills when their process matches the task: brainstorming, planning, TDD, systematic debugging, parallel-agent execution, code review, and verification before completion.
-- If a Claude sample plugin is not installed in Codex, use the closest installed equivalent and state the gap instead of pretending the plugin exists.
+- The main thread is the lead unless the user explicitly requests
+  `fullstack-agent` or a generated Spawn Plan. Do not activate a team workflow
+  merely because multiple files are present.
+- When team work is requested, use the `codex-agent-team` skills as the source
+  of procedure. Keep artifacts under `.codex/specs/<slug>/`.
+- The lead owns research, requirements, design decisions, task waves,
+  delegation, consolidation, blockers, and final communication. Role agents
+  own their delegated implementation or review scope.
+- Delegate file-disjoint scopes. No two concurrent writers may own the same
+  file. Serialize overlap or identify one merge owner before work begins.
+- Every handoff must name the role and unique instance, spec/task reference,
+  exact files, no-edit boundary, acceptance criteria, interface contract,
+  verification command or evidence, expected output, peer-concurrency warning,
+  and whether the lead must wait for all requested agents before consolidation.
+- Use `sa-agent` for AWS work involving IAM, encryption/KMS, network exposure,
+  EKS access, stateful resources, classified storage, logging/retention, or
+  Terraform/CloudFormation state backends.
 
-## Production Safety
+## Liveness, Recovery, And Closure
 
-- Prefer read-only or least-privilege credentials for AWS or production-like investigation.
-- Treat unknown environments as production until proven otherwise.
-- Prefer `list`, `describe`, `get`, dry-run, plan, synth, or diff operations before any mutating operation.
-- Use `aws-security-guidelines` for AWS resource, IaC, deployment, and security review work; pair it with AWS Core/Data Analytics skills for service-specific workflows and verify current facts with `aws-mcp` or the AWS IaC MCP server where applicable.
-- Do not delete, terminate, modify production resources, deploy, or disable safety protections without explicit user direction and a clear impact statement.
-- Never inline secrets in code, docs, configs, tests, prompts, or command examples.
-- For IaC, deploy scripts, CI/CD, and shell tooling, static checks are necessary but not sufficient. Require executable validation such as deploy/smoke/teardown or the closest safe equivalent; if it cannot run, record that the live-validation gate remains open.
+- Silence is not failure. A quiet agent may be running a long build, test,
+  plan, or review. Inspect durable artifacts and agent state, and wait for a
+  returned result before deciding that work is lost.
+- Require positive evidence before recovery or reassignment: an explicit
+  terminal failure, confirmed termination, unusable/corrupt output, or durable
+  evidence that the assigned acceptance criteria cannot complete.
+- Do not duplicate an in-flight scope, take over broad implementation in the
+  lead thread, or cross a destructive/billable gate because an agent is quiet.
+  Steer the agent when possible; otherwise respawn only the unfinished,
+  file-disjoint scope.
+- Wait for all requested agents before consolidating a wave. If a requested
+  result is unavailable, record the missing evidence and resulting assurance
+  gap rather than fabricating a summary.
+- Harvest each completed result, preserve its evidence, and close every agent
+  that is no longer needed. Before final completion, perform an active-worker
+  check and confirm that no required worker remains active.
+- After an interruption or resume, inspect current artifacts and existing
+  agent state before spawning replacements. Do not create duplicate workers
+  from an old transcript or stale plan.
+
+## Independent Review
+
+- Keep review adversarial and independent. Implementation is not complete until
+  the assigned review synthesizer reports PASS; self-review is not a verdict.
+- Limit each whole team run to three review cycles total. A review cycle is
+  consumed when a synthesizer is spawned, including the initial review,
+  targeted re-reviews, replacement reviewers, and retries after interruption.
+- The counter is whole-run and non-resetting. Do not reset it for a new task
+  wave, fix wave, reviewer, review file, process, or resumed session.
+- A FAIL in cycle 1 or 2 may create one scoped fix wave followed by the next
+  review. Cycle 3 is terminal: if it does not report PASS, stop spawning fixes
+  or reviewers, close active agents, preserve unresolved findings and
+  verification evidence, and report the run as blocked. Never spawn a fourth
+  review cycle automatically.
+
+## Verification
+
+- Run the most relevant targeted tests plus repository checks that would block
+  CI for changed files. Report exact commands, exit codes, and outcomes.
+- Verify the verifier: confirm that each command actually exercises the claimed
+  behavior, uses the repository's pinned tooling, and covers the acceptance
+  criteria. A green but inadequate check is an open verification gap.
+- Distinguish static validation from executable behavior. If a required check
+  cannot run, state why, identify the unproven behavior, and leave the gate
+  open.
+- Static checks alone do not prove deploy scripts, CI/CD, shell tooling, or IaC
+  runtime behavior. A required live-validation gate needs deploy/smoke/teardown
+  or the closest safe executable equivalent.
+- Completion reports must include changed files, delivered behavior, exact
+  verification evidence, blockers, open live-validation gates, and residual
+  risk.
+
+## AWS And Production Safety
+
+- Treat unknown accounts, environments, clusters, stacks, and workspaces as
+  production. Assert account, region, profile, stage, context, namespace,
+  workspace, and state backend before any approved action.
+- Prefer read-only, least-privilege, list/get/describe, dry-run, plan, synth,
+  diff, and local validation operations.
+- Use `aws-security-guidelines` with relevant AWS Core or Data Analytics skills.
+  Use the AWS IaC MCP server for CloudFormation/CDK validation and
+  troubleshooting, and configured AWS MCP tools for current facts and
+  read-only checks.
+- Never expose secrets or mutate, deploy, delete, terminate, or disable live
+  protections without explicit direction and a clear impact statement.
+- If a run may have left billable resources, stop feature work, establish
+  resource state with read-only checks, preserve state locks and evidence, and
+  obtain explicit teardown authorization.

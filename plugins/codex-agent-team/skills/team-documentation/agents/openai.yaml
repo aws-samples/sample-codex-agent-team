@@ -1,3 +1,4 @@
 interface:
   display_name: "Team Documentation"
-  short_description: "Documentation guidance for the Codex team workflow"
+  short_description: "Reconcile accurate team and operator documentation"
+  default_prompt: "Use $team-documentation to update only the documentation affected by this verified change."

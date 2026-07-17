@@ -1,3 +1,4 @@
 interface:
   display_name: "Team Spec Workflow"
-  short_description: "Spec-driven hybrid Codex team workflow"
+  short_description: "Plan durable, review-gated Codex team workflows"
+  default_prompt: "Use $team-spec-workflow to create durable specs, file-disjoint task waves, and review gates for this work."

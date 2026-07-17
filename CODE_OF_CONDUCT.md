@@ -1,4 +1,6 @@
-## Code of Conduct
-This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct).
-For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact
-opensource-codeofconduct@amazon.com with any additional questions or comments.
+# Code Of Conduct
+
+Participants are expected to collaborate respectfully and focus on technical substance. Harassment, abuse, and personal attacks are not acceptable.
+
+Project maintainers may remove comments, issues, or pull requests that violate this standard.
+
