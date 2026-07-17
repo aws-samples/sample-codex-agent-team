@@ -34,7 +34,7 @@ User request
 | Agent | Model | Reasoning Effort | Primary Responsibility |
 | --- | --- | --- | --- |
 | `fullstack-agent` | `openai.gpt-5.6-sol` | `xhigh` | Spawned lead for specs, work splitting, delegation, and review consolidation |
-| `coding-agent` | `openai.gpt-5.6-terra` | `max` | Scoped production code, tests, refactors, and fixes |
+| `coding-agent` | `openai.gpt-5.6-terra` | `xhigh` | Scoped production code, tests, refactors, and fixes |
 | `devops-agent` | `openai.gpt-5.6-terra` | `high` | CI/CD, containers, infrastructure, environment wiring, and runbooks |
 | `review-agent` | `openai.gpt-5.6-sol` | `max` | Independent PASS/FAIL review for bugs, regressions, security, and missing verification |
 | `sa-agent` | `openai.gpt-5.6-terra` | `max` | Architecture, reliability, cost, and operational design guidance |

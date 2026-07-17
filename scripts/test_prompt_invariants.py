@@ -16,7 +16,7 @@ PLUGIN = ROOT / "plugins" / "codex-agent-team"
 AGENTS = {
     "fullstack-agent": ("openai.gpt-5.6-sol", "xhigh", 1600),
     "review-agent": ("openai.gpt-5.6-sol", "max", 1000),
-    "coding-agent": ("openai.gpt-5.6-terra", "max", 700),
+    "coding-agent": ("openai.gpt-5.6-terra", "xhigh", 700),
     "sa-agent": ("openai.gpt-5.6-terra", "max", 700),
     "devops-agent": ("openai.gpt-5.6-terra", "high", 1000),
 }

@@ -15,7 +15,7 @@ The sample is built around a main-thread coordinator and five optional role agen
 | Agent | Role | Model | Reasoning Effort | Primary Use |
 | --- | --- | --- | --- | --- |
 | `fullstack-agent` | Lead coordinator | `openai.gpt-5.6-sol` | xhigh | Specs, work splitting, delegation, spawn-plan generation, and review consolidation |
-| `coding-agent` | Implementation engineer | `openai.gpt-5.6-terra` | max | Scoped production code, tests, refactors, and fixes |
+| `coding-agent` | Implementation engineer | `openai.gpt-5.6-terra` | xhigh | Scoped production code, tests, refactors, and fixes |
 | `devops-agent` | Infrastructure and delivery specialist | `openai.gpt-5.6-terra` | high | CI/CD, containers, IaC, environment wiring, and runbooks |
 | `review-agent` | Independent reviewer | `openai.gpt-5.6-sol` | max | PASS/FAIL review for bugs, regressions, security, and missing verification |
 | `sa-agent` | AWS Solutions Architect teammate | `openai.gpt-5.6-terra` | max | Architecture, reliability, cost, security, and operational design |
