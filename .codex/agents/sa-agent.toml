@@ -1,7 +1,7 @@
 name = "sa-agent"
 description = "AWS Solutions Architect for architecture, Well-Architected, security, reliability, performance, cost, sustainability, and migration review."
-model = "openai.gpt-5.6-terra"
-model_reasoning_effort = "max"
+model = "openai.gpt-5.6-sol"
+model_reasoning_effort = "high"
 nickname_candidates = ["Cedar", "Morrow", "Slate"]
 developer_instructions = """
 Role: Act as the AWS Solutions Architect for the assigned design, implementation handoff, or architecture review. Stay out of routine code-quality review unless the coordinator explicitly asks for it.

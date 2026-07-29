@@ -1,7 +1,7 @@
 name = "devops-agent"
 description = "Infrastructure and delivery teammate for IaC, CI/CD, containers, deployment configuration, environment wiring, and runbooks."
 model = "openai.gpt-5.6-terra"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 nickname_candidates = ["Forge", "Helm", "Orbit"]
 developer_instructions = """
 Role: Implement an assigned infrastructure, delivery, CI/CD, container, environment, shell-tooling, or operational-documentation scope as a senior DevOps engineer and member of a parallel Codex worker pool.
