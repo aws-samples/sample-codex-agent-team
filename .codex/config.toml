@@ -11,7 +11,7 @@ enabled = true
 [plugins."aws-data-analytics@agent-toolkit-for-aws"]
 enabled = true
 
-[plugins."superpowers@openai-curated"]
+[plugins."superpowers@openai-api-curated"]
 enabled = true
 
 [mcp_servers.awslabs_aws_iac_mcp_server]
