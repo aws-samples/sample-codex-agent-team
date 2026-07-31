@@ -98,7 +98,7 @@ Specs created during real work are ignored by `.gitignore`; they are runtime pro
   use only the Python standard library and remain compatible with Python 3.8+.
 - A git repository root. Hook commands resolve repo-local paths with `git rev-parse --show-toplevel`.
 - A trusted Codex project. Project `.codex` config, agents, hooks, and rules load only after you trust the project.
-- For the AWS-optimized path, install and enable `aws-core@agent-toolkit-for-aws`, `aws-data-analytics@agent-toolkit-for-aws`, and `superpowers@openai-curated`. The sample `.codex/config.toml` reflects those enabled plugins.
+- For the AWS-optimized path, install and enable `aws-core@agent-toolkit-for-aws`, `aws-data-analytics@agent-toolkit-for-aws`, and `superpowers@openai-api-curated`. The sample `.codex/config.toml` reflects those enabled plugins.
 - Optional: organization approval for Codex, OpenAI usage, plugin distribution, hooks, and any future MCP/server integrations.
 
 ## Quick Start
@@ -120,7 +120,7 @@ codex plugin marketplace add /absolute/path/to/sample_codex_agent_team
 ```text
 aws-core@agent-toolkit-for-aws
 aws-data-analytics@agent-toolkit-for-aws
-superpowers@openai-curated
+superpowers@openai-api-curated
 ```
 
 6. Start a new Codex thread so plugin skills, commands, and custom agents are discoverable.
@@ -299,7 +299,7 @@ Companion plugin routing:
 | --- | --- |
 | `aws-core@agent-toolkit-for-aws` | AWS service, SDK, IAM, Bedrock, serverless, containers, observability, cost, messaging, secrets, and plugin-backed current AWS facts. |
 | `aws-data-analytics@agent-toolkit-for-aws` | Glue, Athena, S3 Tables, S3 Vectors, OpenSearch, data lake, ETL, catalog, analytics, and vector/search workflows. |
-| `superpowers@openai-curated` | Process skills for brainstorming, planning, debugging, TDD, parallel agents, review, and verification-before-completion. |
+| `superpowers@openai-api-curated` | Process skills for brainstorming, planning, debugging, TDD, parallel agents, review, and verification-before-completion. |
 
 Configured project MCP servers:
 
