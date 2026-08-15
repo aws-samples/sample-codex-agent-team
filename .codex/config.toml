@@ -1,5 +1,5 @@
-model = "openai.gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model = "openai.gpt-5.6-terra"
+model_reasoning_effort = "medium"
 
 [agents]
 max_threads = 14
