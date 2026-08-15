@@ -13,7 +13,7 @@ Mitigations:
 - Keep tasks file-disjoint within a wave.
 - Require agents to report before editing outside their assigned scope.
 - Run independent `review-agent` passes before accepting a wave.
-- Limit the entire team run to three review synthesizer spawns. Replacements and interrupted retries consume the same budget; cycle 3 is terminal.
+- Give each independently reviewable task group a durable group identifier and limit it to three review synthesizer spawns. Replacements and interrupted retries consume that group's budget; cycle 3 is terminal for the group.
 - Inspect `git diff --name-only` before committing or shipping changes.
 
 ### Hook Execution
@@ -55,12 +55,15 @@ teammates running after useful work has stopped.
 
 Mitigations:
 
-- Count a review cycle when its synthesizer is spawned.
-- Share one maximum three-cycle budget across all waves, reviewers,
-  replacements, retries, sessions, and review files.
-- Permit fix waves only after cycles 1 and 2.
-- Treat a cycle 3 non-PASS result as terminal: stop automatic fixes and reviews,
-  close active agents, preserve evidence, and report BLOCKED.
+- Count a task group's review cycle when its synthesizer is spawned.
+- Keep one maximum three-cycle budget per durable group identifier across that
+  group's waves, reviewers, replacements, retries, sessions, and review files.
+- Do not mint a new budget by renaming or artificially splitting a reviewed
+  group.
+- Permit a group fix wave only after its cycles 1 and 2.
+- Treat a group cycle 3 non-PASS result as terminal for that group: stop its
+  automatic fixes and reviews, preserve evidence, and report the group BLOCKED.
+  Other independent groups may continue.
 
 ### Credentials And Production Resources
 

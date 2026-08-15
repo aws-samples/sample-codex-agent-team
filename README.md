@@ -14,11 +14,11 @@ The sample is built around a main-thread coordinator and five optional role agen
 
 | Agent | Role | Model | Reasoning Effort | Primary Use |
 | --- | --- | --- | --- | --- |
-| `fullstack-agent` | Lead coordinator | `openai.gpt-5.6-sol` | xhigh | Specs, work splitting, delegation, spawn-plan generation, and review consolidation |
+| `fullstack-agent` | Lead coordinator | `openai.gpt-5.6-sol` | high | Specs, work splitting, delegation, spawn-plan generation, and review consolidation |
 | `coding-agent` | Implementation engineer | `openai.gpt-5.6-terra` | high | Scoped production code, tests, refactors, and fixes |
 | `devops-agent` | Infrastructure and delivery specialist | `openai.gpt-5.6-terra` | xhigh | CI/CD, containers, IaC, environment wiring, and runbooks |
-| `review-agent` | Independent reviewer | `openai.gpt-5.6-sol` | max | PASS/FAIL review for bugs, regressions, security, and missing verification |
-| `sa-agent` | AWS Solutions Architect teammate | `openai.gpt-5.6-sol` | high | Architecture, reliability, cost, security, and operational design |
+| `review-agent` | Independent reviewer | `openai.gpt-5.6-sol` | xhigh | PASS/FAIL review for bugs, regressions, security, and missing verification |
+| `sa-agent` | AWS Solutions Architect teammate | `openai.gpt-5.6-sol` | medium | Architecture, reliability, cost, security, and operational design |
 
 These explicit IDs preserve the approved setup. The public repo intentionally
 does not copy the private `model_provider`, credentials, region, profile, or
@@ -41,7 +41,7 @@ The workflow has three practical rules:
 
 1. Put durable planning artifacts in `.codex/specs/<slug>/`.
 2. Split parallel work by files or ownership boundaries.
-3. Treat review as a separate gate with one non-resetting three-cycle budget for the entire run.
+3. Give each independently reviewable task group a durable group identifier and its own non-resetting three-cycle review budget.
 
 This sample does not provide a shared task database. Coordination happens through explicit prompts, repo-local spec files, and main-thread consolidation.
 
@@ -59,7 +59,7 @@ The installed team can run multiple instances of the same role when the work is 
 These are ceilings, not quotas. Use fewer agents when there are fewer independent scopes, and serialize any work that must touch the same files. Codex does not provide Claude-style shared task tools in this workflow, so the coordinator assigns each spawned instance an explicit name, file scope, expected output, and verification command.
 
 The earlier disposable smoke project has been removed. The current GPT-5.6
-matrix, global review budget, and hook locking must be validated in the
+matrix, per-task-group review budget, and hook locking must be validated in the
 adopter's own sandbox before production use.
 
 ## How The Workflow Runs
@@ -68,12 +68,12 @@ For non-trivial work, the flow is:
 
 1. Capture requirements in `.codex/specs/<slug>/requirements.md` or create an initial `spec.md`.
 2. Create or refine `spec.md`, `design.md`, and `tasks.md`.
-3. Partition tasks into small, file-disjoint waves.
+3. Partition tasks into stable, independently reviewable task groups with durable group identifiers, then into small file-disjoint waves.
 4. Spawn role agents only for slices that can proceed independently.
 5. Give each spawned agent an explicit prompt with its role, spec path, file scope, expected output, and verification command.
 6. Wait for all requested agents, then consolidate their results in the main thread or `fullstack-agent`.
-7. Run a dedicated `review-agent` pass and consume the next whole-run cycle when its synthesizer is spawned.
-8. A FAIL in cycle 1 or 2 may create a scoped fix wave. Cycle 3 is terminal; preserve evidence and report BLOCKED rather than spawning cycle 4.
+7. Run a dedicated `review-agent` pass and consume the named task group's next cycle when its synthesizer is spawned.
+8. A group FAIL in cycle 1 or 2 may create one scoped fix wave. Group cycle 3 is terminal; preserve evidence and report that group BLOCKED rather than spawning its cycle 4.
 
 Specs created during real work are ignored by `.gitignore`; they are runtime project artifacts, not part of this reusable sample.
 
@@ -243,8 +243,8 @@ output contracts, and stop conditions.
 The prompts intentionally constrain agents to their assigned scope:
 
 - `fullstack-agent` owns requirements, contracts, file-disjoint waves, worker
-  liveness, consolidation, closure, and the whole-run three-cycle review budget;
-  it returns a Spawn Plan when nested delegation is unavailable.
+  liveness, consolidation, closure, and each task group's three-cycle review
+  budget; it returns a Spawn Plan when nested delegation is unavailable.
 - `coding-agent` may run as `coding-1` through `coding-6`; each instance follows
   exact-file ownership, TDD/debugging routes, interface contracts, CI-blocking
   verification, and task-local documentation close-out.
@@ -280,7 +280,7 @@ Skills are reusable instructions that the main thread or agents load on demand.
 | `team-brainstorm` | Convert a rough idea into `.codex/specs/<slug>/requirements.md`. |
 | `team-spec-workflow` | Drive spec artifacts, task waves, delegation, and review loops. |
 | `team-coordination` | Write explicit subagent prompts with file boundaries and verification expectations. |
-| `team-review-cycle` | Maintain one synthesizer-owned review history and a global three-cycle PASS/FAIL gate. |
+| `team-review-cycle` | Maintain synthesizer-owned review history and a separate three-cycle PASS/FAIL gate for each durable task group identifier. |
 | `team-documentation` | Keep README, runbook, architecture, API, and spec docs aligned. |
 | `aws-security-guidelines` | Review AWS services for encryption, TLS, logging, tagging, IAM, and production data controls. |
 | `concurrent-cached-fetch` | Add bounded concurrency and disk caching for independent external fan-out calls. |
@@ -341,7 +341,7 @@ Common artifacts:
 | `spec.md` | Requirements, assumptions, interfaces, risks, and out-of-scope boundaries. |
 | `design.md` | Architecture, components, data model, infrastructure, and tradeoffs. |
 | `tasks.md` | File-disjoint waves with clear acceptance and verification. |
-| `review.md` | Synthesizer-owned review history, one whole-run cycle counter, and the authoritative PASS/FAIL verdict. |
+| `review.md` | Synthesizer-owned review history with a separate counter and authoritative PASS/FAIL verdict for each task group. |
 | `sa-review.md` | Architecture and Well-Architected style findings. |
 | `decisions.md` | Durable decision log. |
 | `prd.md` | Product requirements and rollout notes when product framing is needed. |

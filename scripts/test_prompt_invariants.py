@@ -14,10 +14,10 @@ CODEX = ROOT / ".codex"
 PLUGIN = ROOT / "plugins" / "codex-agent-team"
 
 AGENTS = {
-    "fullstack-agent": ("openai.gpt-5.6-sol", "xhigh", 1600),
-    "review-agent": ("openai.gpt-5.6-sol", "max", 1000),
+    "fullstack-agent": ("openai.gpt-5.6-sol", "high", 1600),
+    "review-agent": ("openai.gpt-5.6-sol", "xhigh", 1000),
     "coding-agent": ("openai.gpt-5.6-terra", "high", 700),
-    "sa-agent": ("openai.gpt-5.6-sol", "high", 700),
+    "sa-agent": ("openai.gpt-5.6-sol", "medium", 700),
     "devops-agent": ("openai.gpt-5.6-terra", "xhigh", 1000),
 }
 
@@ -92,7 +92,8 @@ class PublicPromptInvariantTests(unittest.TestCase):
                 ("wait for all", "all requested agents"),
                 ("close active agents", "close every"),
                 ("active-worker check", "no required worker"),
-                ("whole team run", "whole-run"),
+                ("task group",),
+                ("group identifier", "group id"),
                 ("three review cycles", "three-cycle"),
                 ("does not reset", "do not reset", "non-resetting"),
                 ("verify the verifier",),
@@ -299,7 +300,7 @@ class PublicPromptInvariantTests(unittest.TestCase):
                     ("consumed when", "cycle is consumed"),
                     ("fix wave",),
                     ("terminal",),
-                    ("close active agents", "close all"),
+                    ("close agents no longer needed",),
                 ),
             ),
             "team-documentation": (
@@ -390,6 +391,41 @@ class PublicPromptInvariantTests(unittest.TestCase):
             r"intentionally (excludes|does not include).*test-suite-runner",
         )
         self.assertNotIn("concise gpt-5.6-oriented developer instructions", text)
+
+    def test_review_budget_is_per_task_group(self) -> None:
+        paths = (
+            ROOT / "AGENTS.md",
+            ROOT / "README.md",
+            ROOT / "SECURITY.md",
+            ROOT / "docs" / "design.md",
+            ROOT / "docs" / "specs" / "templates" / "review.md",
+            CODEX / "agents" / "fullstack-agent.toml",
+            CODEX / "agents" / "review-agent.toml",
+            PLUGIN / "skills" / "team-review-cycle" / "SKILL.md",
+            PLUGIN / "skills" / "team-spec-workflow" / "SKILL.md",
+            PLUGIN / "commands" / "launch-codex-team.md",
+        )
+        forbidden = (
+            "global three-cycle",
+            "one whole-run cycle counter",
+            "one non-resetting three-cycle budget for the full team run",
+            "one non-resetting maximum of three review cycles for the entire user objective/team run",
+            "one maximum three-cycle budget applies to the whole run",
+            "share one maximum three-cycle budget across all waves",
+            "the whole team run has one non-resetting three-cycle budget",
+        )
+
+        for path in paths:
+            with self.subTest(path=path):
+                text = read(path).lower()
+                self.assertIn("task group", text)
+                self.assertTrue(
+                    "group id" in text or "group identifier" in text,
+                    f"{path} must carry a durable group identifier",
+                )
+                self.assertIn("cycle 3", text)
+                for phrase in forbidden:
+                    self.assertNotIn(phrase, text)
 
     def test_no_unqualified_claude_mechanism_claims(self) -> None:
         names = (

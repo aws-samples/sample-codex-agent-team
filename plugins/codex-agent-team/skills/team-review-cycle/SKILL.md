@@ -9,8 +9,8 @@ description: Use when implemented work needs an independent correctness, securit
 
 Produce evidence-backed findings and exactly one independent `PASS` or `FAIL`
 verdict for the current integrated state. Preserve the review history, consume
-one global cycle budget for the whole team run, and terminate automatic
-review/fix work after cycle 3.
+one cycle from the named task group's budget, and terminate that group's
+automatic review/fix work after cycle 3.
 
 Review is adversarial validation, not a formality. An implementer, lead, or
 self-authored PASS is a TODO marker rather than an independent verdict.
@@ -21,7 +21,7 @@ Every review handoff must contain:
 
 - review role and unique instance name
 - spec directory
-- wave and whole-run cycle number
+- durable task group identifier, wave, and group cycle number
 - exact modified files or assigned review slice
 - acceptance criteria and interface contracts
 - worker verification commands and outcomes
@@ -250,20 +250,25 @@ FAIL when:
 PASS only when the integrated scope is acceptable as-is and all required
 evidence is present. Suggestions do not block PASS.
 
-## Global Cycle Budget
+## Per-Task-Group Cycle Budget
 
-There is one non-resetting maximum of three review cycles for the entire user
-objective/team run. A cycle is consumed when its synthesizer is spawned, before
-the result is known. The same budget counts:
+Every independently reviewable task group has a durable group identifier and
+its own non-resetting maximum of three review cycles. Record the identifier in
+`tasks.md`, the review handoff, `decisions.md`, and every `review.md` section. A
+cycle is consumed when that group's synthesizer is spawned, before the result
+is known. The same group's budget counts:
 
 - initial review
 - targeted re-review
 - replacement synthesizer
 - retry after interruption or failure
 
-Derive the next number from durable review and orchestration evidence before
-spawn. Do not reset for a new implementation wave, fix wave, reviewer, review
-file, process, or resumed session.
+Derive the next number for the named task group from durable review and
+orchestration evidence before spawn. Do not reset the group for a new
+implementation wave, fix wave, reviewer, review file, process, or resumed
+session. Renaming or artificially splitting an exhausted group does not create
+a new budget. A genuinely distinct group planned as a separate reviewable scope
+has its own counter.
 
 - Cycle 1: full broad adversarial review.
 - Cycle 2: verify cycle-1 fixes, targeted regressions, and new blockers.
@@ -272,18 +277,22 @@ file, process, or resumed session.
 Only cycle 1 or 2 FAIL may create one scoped fix wave. After the fix, all
 affected and regression checks run before the next synthesizer spawn.
 
-Cycle 3 is terminal. If it returns FAIL, is interrupted, or cannot complete:
+Cycle 3 is terminal for the affected task group. If it returns FAIL, is
+interrupted, or cannot complete:
 
-1. Stop all automatic fix and review work.
-2. Close active agents.
+1. Stop automatic fix and review work for that group.
+2. Close agents no longer needed for the group.
 3. Preserve unresolved findings, partial results, and verification evidence.
 4. Record affected tasks/docs and open live-validation gates.
-5. Report the run blocked for user decision.
+5. Report the task group blocked for user decision.
 
-Never spawn cycle 4.
+Other independent task groups may continue, but a required blocked group keeps
+the objective incomplete. Never spawn cycle 4 for a group without explicit
+user authorization recorded in `decisions.md`.
 
 ## Coordinator Handoff
 
-The synthesizer returns one message with wave, cycle, verdict, counts by
-severity, commands/outcomes, missing evidence, and review path. The coordinator
-reads the verdict; it does not rewrite or aggregate an independent PASS.
+The synthesizer returns one message with task group identifier, wave, group
+cycle, verdict, counts by severity, commands/outcomes, missing evidence, and
+review path. The coordinator reads the verdict; it does not rewrite or
+aggregate an independent PASS.

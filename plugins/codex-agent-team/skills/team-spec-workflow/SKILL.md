@@ -129,7 +129,14 @@ Do not mark `[x]` from a worker's claim alone. Reconcile returned results,
 current files, and fresh command output. Preserve failure evidence in the task
 note.
 
-## Wave Construction
+## Task Groups And Wave Construction
+
+A task group is a stable, independently reviewable planned scope. Give every
+group a durable identifier such as `G1-api` or `G2-infra` in `tasks.md` before
+its first review. A group may contain multiple implementation waves and later
+fix waves, but all of them share that group's review-cycle counter. Separate
+groups only when their acceptance and verdicts are genuinely independent; do
+not rename or split a reviewed group to evade an exhausted budget.
 
 Build the fewest waves with the widest safe file-disjoint work:
 
@@ -207,21 +214,26 @@ approved and available. If it cannot run:
 
 After implementation evidence is consolidated:
 
-1. Count every prior review synthesizer spawn for the entire team run.
-2. Record the next cycle before spawning review.
-3. Use `team-review-cycle` with exactly one synthesizer and optional
+1. Select the task group and confirm its durable group identifier.
+2. Count every prior synthesizer spawn for that group from `decisions.md` and
+   `review.md`.
+3. Record the group's next cycle before spawning review.
+4. Use `team-review-cycle` with exactly one synthesizer and optional
    file-disjoint analysts.
-4. Wait for requested analyst evidence and the synthesizer verdict.
-5. On cycle 1 or 2 FAIL, convert unresolved Critical/Warning findings into one
-   scoped, file-disjoint fix wave.
-6. Re-run affected and regression verification, then consume the next review
-   cycle.
-7. Cycle 3 is terminal. On non-PASS, stop automatic fixes/reviews, close active
-   agents, preserve evidence, and report blocked.
+5. Wait for requested analyst evidence and the synthesizer verdict.
+6. On group cycle 1 or 2 FAIL, convert unresolved Critical/Warning findings
+   into one scoped, file-disjoint fix wave for that group.
+7. Re-run affected and regression verification, then consume the group's next
+   review cycle.
+8. Group cycle 3 is terminal. On non-PASS, stop that group's automatic
+   fixes/reviews, close agents no longer needed for it, preserve evidence, and
+   report the task group blocked.
 
-One maximum three-cycle budget applies to the whole run. It does not reset for
-a new wave, fix, reviewer, review file, retry, interruption, or resumed
-session. A cycle is consumed when its synthesizer is spawned.
+Each task group has its own maximum three-cycle budget. Its counter does not
+reset for a new implementation wave, fix wave, reviewer, review file, retry,
+interruption, or resumed session. A cycle is consumed when that group's
+synthesizer is spawned. Other independent groups may continue, but a required
+blocked group prevents objective completion.
 
 ## Documentation
 
@@ -237,7 +249,8 @@ Complete only when:
 - requirements and interfaces are satisfied
 - all required task status entries are `[x]`
 - exact verification and CI evidence is recorded
-- one independent synthesizer reports PASS within the three-cycle budget
+- every required task group has one independent synthesizer PASS within that
+  group's three-cycle budget
 - required live-validation gates are closed
 - blockers, decisions, deviations, and accepted risks are durable
 - affected documentation is accurate
@@ -246,5 +259,6 @@ Complete only when:
 - no required worker remains active
 - no billable or temporary verification resource lacks an explicit handoff
 
-If cycle 3 ends without PASS, completion is blocked rather than partial
-success. Preserve the same artifact set so the user can decide the next action.
+If a required task group's cycle 3 ends without PASS, completion is blocked
+rather than partial success. Preserve the same artifact set so the user can
+decide the next action.

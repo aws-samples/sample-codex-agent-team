@@ -33,11 +33,11 @@ User request
 
 | Agent | Model | Reasoning Effort | Primary Responsibility |
 | --- | --- | --- | --- |
-| `fullstack-agent` | `openai.gpt-5.6-sol` | `xhigh` | Spawned lead for specs, work splitting, delegation, and review consolidation |
+| `fullstack-agent` | `openai.gpt-5.6-sol` | `high` | Spawned lead for specs, work splitting, delegation, and review consolidation |
 | `coding-agent` | `openai.gpt-5.6-terra` | `high` | Scoped production code, tests, refactors, and fixes |
 | `devops-agent` | `openai.gpt-5.6-terra` | `xhigh` | CI/CD, containers, infrastructure, environment wiring, and runbooks |
-| `review-agent` | `openai.gpt-5.6-sol` | `max` | Independent PASS/FAIL review for bugs, regressions, security, and missing verification |
-| `sa-agent` | `openai.gpt-5.6-sol` | `high` | Architecture, reliability, cost, and operational design guidance |
+| `review-agent` | `openai.gpt-5.6-sol` | `xhigh` | Independent PASS/FAIL review for bugs, regressions, security, and missing verification |
+| `sa-agent` | `openai.gpt-5.6-sol` | `medium` | Architecture, reliability, cost, and operational design guidance |
 
 ## Parallel Pool Model
 
@@ -56,12 +56,16 @@ Codex does not provide a shared queue for this workflow. `tasks.md` is the durab
 
 ## Review Lifecycle
 
-The review budget is global: a synthesizer spawn consumes a cycle, replacements
-and interrupted retries count, cycles 1 and 2 may create fix waves, and cycle 3
-is terminal. The counter does not reset for a new wave, reviewer, session, or
-review file. The earlier disposable smoke project was removed; adopters must
-validate the current GPT-5.6 model availability and pool behavior in their own
-sandbox.
+The review budget is per task group. Each independently reviewable group gets a
+durable group identifier and its own three-cycle counter. A synthesizer spawn
+consumes that group's cycle; replacements and interrupted retries count, cycles
+1 and 2 may create one fix wave, and cycle 3 is terminal for the group. The
+counter does not reset for that group's new implementation/fix wave, reviewer,
+session, or review file, and renaming or artificially splitting the group does
+not create a new budget. Independent groups may continue after one group is
+blocked, although a required blocked group prevents objective completion. The
+earlier disposable smoke project was removed; adopters must validate the
+current GPT-5.6 model availability and pool behavior in their own sandbox.
 
 ## Design Decisions
 

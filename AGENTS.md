@@ -98,16 +98,21 @@
 
 - Keep review adversarial and independent. Implementation is not complete until
   the assigned review synthesizer reports PASS; self-review is not a verdict.
-- Limit each whole team run to three review cycles total. A review cycle is
-  consumed when a synthesizer is spawned, including the initial review,
-  targeted re-reviews, replacement reviewers, and retries after interruption.
-- The counter is whole-run and non-resetting. Do not reset it for a new task
-  wave, fix wave, reviewer, review file, process, or resumed session.
+- Give every independently reviewable task group a durable group identifier in
+  `tasks.md` and review handoffs. Limit each task group to three review cycles.
+  A cycle is consumed when that group's synthesizer is spawned, including its
+  initial review, targeted re-reviews, replacements, and interrupted retries.
+- Each task-group counter is non-resetting across that group's implementation
+  waves, fix waves, reviewers, review files, processes, and resumed sessions.
+  Renaming or artificially splitting an exhausted group does not create a new
+  budget. A genuinely distinct planned task group has its own counter.
 - A FAIL in cycle 1 or 2 may create one scoped fix wave followed by the next
-  review. Cycle 3 is terminal: if it does not report PASS, stop spawning fixes
-  or reviewers, close active agents, preserve unresolved findings and
-  verification evidence, and report the run as blocked. Never spawn a fourth
-  review cycle automatically.
+  review for that group. Cycle 3 is terminal for the affected task group: if it
+  does not report PASS, stop that group's automatic fix/review loop, preserve
+  its findings and verification evidence, and report the group blocked. Other
+  independent groups may continue, but the objective cannot complete while a
+  required group is blocked. Never spawn a fourth cycle for a group
+  automatically.
 
 ## Verification
 
